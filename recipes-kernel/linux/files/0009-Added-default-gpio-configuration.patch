@@ -1,0 +1,111 @@
+From b9fb60a6f5be6be66877fbce1f015e41dd1ba320 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Tue, 30 May 2023 18:31:09 +0530
+Subject: [PATCH] Added default gpio configuration
+
+- enable /sys/class/gpio interface
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+index 268ac1dbf413..11987643651e 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -31,6 +31,13 @@ led_blue: red_blue {
+ 			gpios = <&gpio4 29 GPIO_ACTIVE_HIGH>;
+ 		};
+ 	};
++	
++	gpio_init {
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_gpios>;
++	};
++	
+ 
+ 	backlight: backlight {
+ 		status = "okay";
+@@ -327,25 +334,50 @@ MX8MM_IOMUXC_SAI1_TXC_GPIO4_IO11		0x19
+ 			MX8MM_IOMUXC_SAI5_RXD0_GPIO3_IO21		0x19
+ 		>;
+ 	};
++
++	pinctrl_gpios: gpiogrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SD2_DATA0_GPIO2_IO15		0x19
++			MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
++			MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12		0x19
++			MX8MM_IOMUXC_ECSPI2_SCLK_GPIO5_IO10		0x19
++			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x19
++			MX8MM_IOMUXC_SAI2_RXC_GPIO4_IO22		0x19
++			MX8MM_IOMUXC_SD2_DATA1_GPIO2_IO16		0x19
++			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x19
++			MX8MM_IOMUXC_ECSPI2_SCLK_GPIO5_IO10		0x19
++			MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12		0x19
++			MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
++			MX8MM_IOMUXC_SD2_CMD_GPIO2_IO14			0x19
++			MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12		0x19	
++			MX8MM_IOMUXC_SD2_WP_GPIO2_IO20			0x19
++			MX8MM_IOMUXC_SAI2_MCLK_GPIO4_IO27		0x19
++			MX8MM_IOMUXC_GPIO1_IO13_GPIO1_IO13		0x19
++			MX8MM_IOMUXC_SD2_DATA2_GPIO2_IO17		0x19
++			MX8MM_IOMUXC_SD2_DATA3_GPIO2_IO18		0x19
++			MX8MM_IOMUXC_SD2_CLK_GPIO2_IO13			0x19
++		>;
++	};
++
+ 	
+ 	pinctrl_fec1: fec1grp {
+-        fsl,pins = <
+-                MX8MM_IOMUXC_ENET_MDC_ENET1_MDC                         0x3
+-                MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO                       0x3
+-                MX8MM_IOMUXC_ENET_TD3_ENET1_RGMII_TD3           0x1f
+-                MX8MM_IOMUXC_ENET_TD2_ENET1_RGMII_TD2           0x1f
+-                MX8MM_IOMUXC_ENET_TD1_ENET1_RGMII_TD1           0x1f
+-                MX8MM_IOMUXC_ENET_TD0_ENET1_RGMII_TD0           0x1f
+-                MX8MM_IOMUXC_ENET_RD3_ENET1_RGMII_RD3           0x91
+-                MX8MM_IOMUXC_ENET_RD2_ENET1_RGMII_RD2           0x91
+-                MX8MM_IOMUXC_ENET_RD1_ENET1_RGMII_RD1           0x91
+-                MX8MM_IOMUXC_ENET_RD0_ENET1_RGMII_RD0           0x91
+-                MX8MM_IOMUXC_ENET_TXC_ENET1_RGMII_TXC           0x1f
+-                MX8MM_IOMUXC_ENET_RXC_ENET1_RGMII_RXC           0x91
+-                MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL     0x91
+-                MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL     0x1f
+-                MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7                       0x19
+-        >;
++	        fsl,pins = <
++	                MX8MM_IOMUXC_ENET_MDC_ENET1_MDC                 0x3
++	                MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO               0x3
++	                MX8MM_IOMUXC_ENET_TD3_ENET1_RGMII_TD3           0x1f
++	                MX8MM_IOMUXC_ENET_TD2_ENET1_RGMII_TD2           0x1f
++	                MX8MM_IOMUXC_ENET_TD1_ENET1_RGMII_TD1           0x1f
++	                MX8MM_IOMUXC_ENET_TD0_ENET1_RGMII_TD0           0x1f
++	                MX8MM_IOMUXC_ENET_RD3_ENET1_RGMII_RD3           0x91
++	                MX8MM_IOMUXC_ENET_RD2_ENET1_RGMII_RD2           0x91
++	                MX8MM_IOMUXC_ENET_RD1_ENET1_RGMII_RD1           0x91
++	                MX8MM_IOMUXC_ENET_RD0_ENET1_RGMII_RD0           0x91
++	                MX8MM_IOMUXC_ENET_TXC_ENET1_RGMII_TXC           0x1f
++	                MX8MM_IOMUXC_ENET_RXC_ENET1_RGMII_RXC           0x91
++	                MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL     0x91
++	                MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL     0x1f
++	                MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7                       0x19
++	        >;
+ };
+ 
+ 
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index 52b717954173..bb3d48f9a50b 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -2,6 +2,8 @@
+ #
+ # GPIO infrastructure and drivers
+ #
++config GPIO_SYSFS
++	default y
+ 
+ config ARCH_HAVE_CUSTOM_GPIO_H
+ 	bool
+-- 
+2.25.1
+

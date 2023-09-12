@@ -1,0 +1,37 @@
+From 2ca06aa0d9dfedab4827388b0dfcf11a6168f650 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Fri, 2 Jun 2023 18:15:52 +0530
+Subject: [PATCH] Added support for max98090/91 audio codec
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+index 92d60dc01965..8dada00b039e 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -196,7 +196,10 @@ max98090: max98090@10 {
+ 		compatible = "maxim,max98091";
+ 		reg = <0x10>;
+ 		clocks = <&clk IMX8MM_CLK_SAI3_ROOT>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>;
+ 		clock-names = "mclk";
++
+ 	};
+ 
+ 
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index a78f28ea2bde..bad5f7cd07f4 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -895,6 +895,7 @@ config SND_SOC_MAX98088
+ 
+ config SND_SOC_MAX98090
+ 	tristate
++	default y
+ 	depends on I2C
+ 
+ config SND_SOC_MAX98095
+-- 
+2.25.1
+

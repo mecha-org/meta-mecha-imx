@@ -1,0 +1,45 @@
+From 5576da2bf8516f5c3c9849bd95be8c5875175016 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Fri, 9 Jun 2023 18:04:19 +0530
+Subject: [PATCH] Remove unwanted nodes
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm/dts/imx8mm-evk.dtsi b/arch/arm/dts/imx8mm-evk.dtsi
+index 95d339bb37..8f1877c0e4 100644
+--- a/arch/arm/dts/imx8mm-evk.dtsi
++++ b/arch/arm/dts/imx8mm-evk.dtsi
+@@ -304,7 +304,7 @@
+ 		reg = <0x3d>;
+ 		adi,addr-cec = <0x3c>;
+ 		adi,dsi-lanes = <4>;
+-		status = "okay";
++		status = "disabled";
+ 
+ 		port {
+ 			adv7535_from_dsim: endpoint {
+@@ -419,7 +419,7 @@
+ 
+ &lcdif {
+ 	display = <&display0>;
+-	status = "okay";
++	status = "disabled";
+ 
+ 	display0: display@0 {
+ 		bits-per-pixel = <24>;
+diff --git a/configs/imx8mm_evk_defconfig b/configs/imx8mm_evk_defconfig
+index bccc7ae599..a1a8920168 100644
+--- a/configs/imx8mm_evk_defconfig
++++ b/configs/imx8mm_evk_defconfig
+@@ -147,7 +147,7 @@ CONFIG_SYSRESET=y
+ CONFIG_SYSRESET_PSCI=y
+ CONFIG_DM_THERMAL=y
+ CONFIG_IMX_TMU=y
+-CONFIG_USB_TCPC=y
++# CONFIG_USB_TCPC is not set
+ CONFIG_USB=y
+ CONFIG_USB_GADGET=y
+ CONFIG_USB_STORAGE=y
+-- 
+2.25.1
+

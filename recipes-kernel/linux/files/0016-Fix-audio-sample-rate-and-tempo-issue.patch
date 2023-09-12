@@ -1,0 +1,43 @@
+From 93831426a163ed7280cafd92e9f3d33125bd7850 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Mon, 14 Aug 2023 10:45:12 +0530
+Subject: [PATCH] Fix audio sample rate and tempo issue
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+index 8dada00b039e..243044e7223e 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -80,8 +80,8 @@ &sai3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_sai3>;
+ 	assigned-clocks = <&clk IMX8MM_CLK_SAI3>;
+-	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
+-	assigned-clock-rates = <24576000>; //<49152000>;
++	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL2_OUT>;
++	assigned-clock-rates = <22579200>;
+ 	clocks = <&clk IMX8MM_CLK_SAI3_IPG>, <&clk IMX8MM_CLK_DUMMY>,
+ 		<&clk IMX8MM_CLK_SAI3_ROOT>, <&clk IMX8MM_CLK_DUMMY>,
+ 		<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_AUDIO_PLL1_OUT>,
+diff --git a/sound/soc/fsl/fsl_sai.c b/sound/soc/fsl/fsl_sai.c
+index 71f953e5a84b..0d5ec3d519c5 100644
+--- a/sound/soc/fsl/fsl_sai.c
++++ b/sound/soc/fsl/fsl_sai.c
+@@ -452,13 +452,6 @@ static int fsl_sai_set_bclk(struct snd_soc_dai *dai, bool tx, u32 freq)
+ 
+ 		ret = clk_rate - ratio * freq;
+ 
+-		/*
+-		 * Drop the source that can not be
+-		 * divided into the required rate.
+-		 */
+-		if (ret != 0 && clk_rate / ret < 10)
+-			continue;
+-
+ 		dev_dbg(dai->dev,
+ 			"ratio %d for freq %dHz based on clock %ldHz\n",
+ 			ratio, freq, clk_rate);
+-- 
+2.25.1
+

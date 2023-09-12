@@ -1,0 +1,52 @@
+From a1b74d518ac9a771155d70471af553c1edc9a161 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Tue, 30 May 2023 20:07:14 +0530
+Subject: [PATCH] Enabled mikrobus pwm
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+index 11987643651e..92d60dc01965 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -322,6 +322,18 @@ MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19		0x19
+ 		>;
+ 	};
+ 
++	pinctrl_mkbus1_pwm: mkbus1pwm {
++		fsl,pins = <
++			MX8MM_IOMUXC_SPDIF_RX_PWM2_OUT			0x06
++		>;
++	};
++	
++	pinctrl_mkbus2_pwm: mkbus2pwm {
++ 		fsl,pins = <
++			MX8MM_IOMUXC_GPIO1_IO01_PWM1_OUT		0x06
++        	>;
++	};
++
+ 	pinctrl_pwm3: pwm3grp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_SPDIF_TX_PWM3_OUT			0x06
+@@ -424,6 +436,18 @@ csi1_mipi_ep: endpoint@2 {
+ 	};
+ };
+ 
++&pwm1 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_mkbus2_pwm>;
++        status = "okay";
++};
++
++&pwm2 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_mkbus1_pwm>;
++        status = "okay";
++};
++
+ &pwm3 {
+         pinctrl-names = "default";
+         pinctrl-0 = <&pinctrl_pwm3>;
+-- 
+2.25.1
+

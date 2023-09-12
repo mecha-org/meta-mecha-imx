@@ -1,0 +1,22 @@
+From a10888c85ea6ed1c4540340eec91938ea819878f Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Thu, 25 May 2023 17:38:55 +0530
+Subject: [PATCH] Config gpio for security chip
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+index ef4bfe6179e2..268ac1dbf413 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -262,6 +262,7 @@ pinctrl_i2c2: i2c2grp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_I2C2_SCL_I2C2_SCL                          0x400001c3
+ 			MX8MM_IOMUXC_I2C2_SDA_I2C2_SDA                          0x400001c3
++			MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20			0x19
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+
