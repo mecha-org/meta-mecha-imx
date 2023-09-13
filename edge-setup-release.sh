@@ -192,8 +192,8 @@ hook_in_layer meta-imx/meta-sdk
 # ADD space
 echo "" >> $BUILD_DIR/conf/bblayers.conf
 #echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-gnome\"" >> $BUILD_DIR/conf/bblayers.conf
-#echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-networking\"" >> $BUILD_DIR/conf/bblayers.conf
-#echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-filesystems\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-networking\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-filesystems\"" >> $BUILD_DIR/conf/bblayers.conf
 
 # Adding Mecha layers
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-mecha-imx\"" >> $BUILD_DIR/conf/bblayers.conf
