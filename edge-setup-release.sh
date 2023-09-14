@@ -197,6 +197,7 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-filesystems\"" >> 
 
 # Adding Mecha layers
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-mecha-imx\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-mecha\"" >> $BUILD_DIR/conf/bblayers.conf
 
 # Enable docker for mx8 machines
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-virtualization\"" >> conf/bblayers.conf
