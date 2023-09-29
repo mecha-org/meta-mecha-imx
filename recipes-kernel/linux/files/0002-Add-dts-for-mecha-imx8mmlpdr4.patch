@@ -1,0 +1,40 @@
+From 40f5c8701e45996e50722e14934c3cee2eda7cb7 Mon Sep 17 00:00:00 2001
+From: HardevSinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Fri, 28 Apr 2023 16:08:46 +0530
+Subject: [PATCH] Add dts for mecha imx8mmlpdr4
+
+- dts : mecha-mc-ci8mm.dts
+
+Signed-off-by: HardevSinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
+index 116ef3e696ee..48c005a166f8 100644
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -88,7 +88,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mm-nitrogen-r2.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mn-evk.dtb imx8mn-evk-rm67191.dtb imx8mn-evk-rpmsg.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mm-ab2.dtb imx8mm-ab2-m4.dtb imx8mm-ddr4-ab2.dtb imx8mm-ddr4-ab2-m4.dtb \
+ 		          imx8mm-ddr4-ab2-revb.dtb imx8mm-ddr4-ab2-m4-revb.dtb \
+-			  fsl-imx8mm-demo.dtb
++			  fsl-imx8mm-demo.dtb mecha-mc-ci8mm.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mn-evk.dtb imx8mn-evk-rm67191.dtb imx8mn-evk-rpmsg.dtb imx8mn-evk-ak5558.dtb \
+ 			  imx8mn-evk-8mic-revE.dtb imx8mn-evk-8mic-swpdm.dtb imx8mn-ddr3l-evk.dtb \
+ 			  imx8mn-evk-iqaudio-dacplus.dtb imx8mn-evk-iqaudio-dacpro.dtb imx8mn-evk-hifiberry-dacplus.dtb \
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+new file mode 100644
+index 000000000000..d827acdd9532
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -0,0 +1,9 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright 2019 NXP
++ */
++
++/dts-v1/;
++
++#include "fsl-imx8mm-demo.dts"
++
+-- 
+2.25.1
+

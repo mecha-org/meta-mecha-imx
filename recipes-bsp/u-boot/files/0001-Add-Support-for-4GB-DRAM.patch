@@ -1,0 +1,51 @@
+From 90f3619273b51bc34a6161067c3cd648b4d8df17 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Tue, 15 Aug 2023 01:12:00 +0530
+Subject: [PATCH] Add Support for 4GB RAM
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/configs/imx8mm_evk_defconfig b/configs/imx8mm_evk_defconfig
+index 1d86997236..b5595d53a9 100644
+--- a/configs/imx8mm_evk_defconfig
++++ b/configs/imx8mm_evk_defconfig
+@@ -207,3 +207,4 @@ CONFIG_TEE=y
+ CONFIG_EFI_ESRT=y
+ CONFIG_EFI_HAVE_CAPSULE_UPDATE=y
+ CONFIG_FIT_SIGNATURE=y
++CONFIG_IMX8M_4G_LPDDR4=y
+diff --git a/include/configs/imx8mm_evk.h b/include/configs/imx8mm_evk.h
+index 3d992ffa13..dbc788b546 100644
+--- a/include/configs/imx8mm_evk.h
++++ b/include/configs/imx8mm_evk.h
+@@ -204,7 +204,7 @@
+ 
+ #define CONFIG_SYS_SDRAM_BASE           0x40000000
+ #define PHYS_SDRAM                      0x40000000
+-#define PHYS_SDRAM_SIZE			0x80000000 /* 2GB DDR */
++#define PHYS_SDRAM_SIZE			SZ_4G /* 2GB DDR */
+ 
+ #define CONFIG_MXC_UART_BASE		UART2_BASE_ADDR
+ 
+@@ -256,8 +256,18 @@
+ #define CONFIG_MXC_USB_PORTSC  (PORT_PTS_UTMI | PORT_PTS_PTW)
+ #define CONFIG_USB_MAX_CONTROLLER_COUNT         2
+ 
++#define CONFIG_NR_DRAM_BANKS 3
++
+ #ifdef CONFIG_ANDROID_SUPPORT
+ #include "imx8mm_evk_android.h"
+ #endif
+ 
++#ifdef CONFIG_IMX8M_4G_LPDDR4
++#undef PHYS_SDRAM_SIZE
++#define PHYS_SDRAM_SIZE          0xC0000000 /* 3GB */
++#define PHYS_SDRAM_2             0x100000000
++#define PHYS_SDRAM_2_SIZE        0x40000000 /* 1GB */
++#endif
++
++
+ #endif
+-- 
+2.25.1
+

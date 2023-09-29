@@ -1,0 +1,22 @@
+From e182828fb3e6154ed51fd76b39b0b5b715eda492 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Tue, 16 May 2023 16:55:27 +0530
+Subject: [PATCH] Added support of edt-ft5x06 touchscreen
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
+index bb2e1cbffba7..40b15f7e2179 100644
+--- a/drivers/input/touchscreen/edt-ft5x06.c
++++ b/drivers/input/touchscreen/edt-ft5x06.c
+@@ -1181,6 +1181,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
+ 		usleep_range(5000, 6000);
+ 		gpiod_set_value_cansleep(tsdata->reset_gpio, 0);
+ 		msleep(300);
++		gpiod_set_value_cansleep(tsdata->reset_gpio, 1);
+ 	}
+ 
+ 	input = devm_input_allocate_device(&client->dev);
+-- 
+2.25.1
+

@@ -1,0 +1,22 @@
+From 00fb679846b8e3be91ffe89369194da714f3d4dd Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Sun, 16 Jul 2023 17:14:03 +0530
+Subject: [PATCH] added support for multiple sample rate
+
+
+diff --git a/sound/soc/fsl/fsl_sai.c b/sound/soc/fsl/fsl_sai.c
+index 1f3eff2528d7..71f953e5a84b 100644
+--- a/sound/soc/fsl/fsl_sai.c
++++ b/sound/soc/fsl/fsl_sai.c
+@@ -456,7 +456,7 @@ static int fsl_sai_set_bclk(struct snd_soc_dai *dai, bool tx, u32 freq)
+ 		 * Drop the source that can not be
+ 		 * divided into the required rate.
+ 		 */
+-		if (ret != 0 && clk_rate / ret < 1000)
++		if (ret != 0 && clk_rate / ret < 10)
+ 			continue;
+ 
+ 		dev_dbg(dai->dev,
+-- 
+2.25.1
+

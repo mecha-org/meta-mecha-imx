@@ -1,0 +1,26 @@
+From 906f7f2ff81b5cd84d12be39431a5155e4c7dd16 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Sat, 29 Jul 2023 12:56:09 +0530
+Subject: [PATCH] Fix cpu governor issue
+
+- It's temporary fix
+- Need to find the clean fix
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/drivers/cpufreq/cpufreq-dt.c b/drivers/cpufreq/cpufreq-dt.c
+index 8fcaba541539..d43688b8853b 100644
+--- a/drivers/cpufreq/cpufreq-dt.c
++++ b/drivers/cpufreq/cpufreq-dt.c
+@@ -227,7 +227,7 @@ static int dt_cpufreq_early_init(struct device *dev, int cpu)
+ 			if (ret != -EPROBE_DEFER)
+ 				dev_err(cpu_dev, "failed to set regulators: %d\n",
+ 					ret);
+-			goto free_cpumask;
++		//	goto free_cpumask;     FIX_ME
+ 		}
+ 	}
+ 
+-- 
+2.25.1
+
