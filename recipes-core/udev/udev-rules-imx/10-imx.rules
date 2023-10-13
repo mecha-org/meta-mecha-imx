@@ -28,8 +28,15 @@ SUBSYSTEM=="platform" KERNEL=="regulatory.0", ACTION=="add", RUN+="/etc/regulato
 SUBSYSTEM=="platform" DRIVER=="imx-sdma", ACTION=="add", RUN+="/etc/sdma"
 SUBSYSTEM=="platform" KERNEL=="*.epdc", ACTION=="add", RUN+="/etc/epdc"
 
+#Change VPU-HANTRO and dma_heap group
+KERNEL=="mxc_hantro", GROUP="video"
+KERNEL=="mxc_hantro_h1", GROUP="video"
 
+SUBSYSTEM=="dma_heap", KERNEL=="system", GROUP="video"
+SUBSYSTEM=="dma_heap", KERNEL=="linux,cma", GROUP="video"
+SUBSYSTEM=="dma_heap", KERNEL=="linux,cma-uncached", GROUP="video"
 
 #MECHA rules 
 KERNEL=="sd?", SUBSYSTEM=="block", ATTR{removable}=="1", RUN+="/bin/su root -c /usr/libexec/otaDetect.sh"
 SUBSYSTEM=="net" KERNEL=="usb1", ACTION=="add", RUN+="/usr/libexec/netifchanges.sh"
+
