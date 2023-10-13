@@ -1,0 +1,306 @@
+From 22d1ddfaeeb1532595d58fd0d4ee1d29395e3aeb Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Sat, 23 Sep 2023 20:31:00 +0530
+Subject: [PATCH] Working GPU Sway Fix
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_drv.c b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+index afd316631c1e..0f83ab03d1ce 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_drv.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+@@ -32,16 +32,18 @@ static void load_gpu(struct drm_device *dev)
+ {
+ 	struct etnaviv_drm_private *priv = dev->dev_private;
+ 	unsigned int i;
+-
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	for (i = 0; i < ETNA_MAX_PIPES; i++) {
+ 		struct etnaviv_gpu *g = priv->gpu[i];
+-
++		printk("HDEBUG %s %d",__func__,__LINE__);
+ 		if (g) {
+ 			int ret;
+-
++			printk("HDEBUG %s %d",__func__,__LINE__);
+ 			ret = etnaviv_gpu_init(g);
+-			if (ret)
++			if (ret){
++				printk("HDEBUG %s %d",__func__,__LINE__);
+ 				priv->gpu[i] = NULL;
++			}
+ 		}
+ 	}
+ }
+@@ -589,6 +591,7 @@ static int compare_str(struct device *dev, void *data)
+ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
++	struct device_node *first_node = NULL;
+ 	struct component_match *match = NULL;
+ 	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	if (!dev->platform_data) {
+@@ -599,6 +602,9 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 			if (!of_device_is_available(core_node))
+ 				continue;
+ 
++			if (!first_node)
++				first_node = core_node;
++
+ 			drm_of_component_match_add(&pdev->dev, &match,
+ 						   compare_of, core_node);
+ 		}
+@@ -612,6 +618,33 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
++
++	/*
++	 * PTA and MTLB can have 40 bit base addresses, but
++	 * unfortunately, an entry in the MTLB can only point to a
++	 * 32 bit base address of a STLB. Moreover, to initialize the
++	 * MMU we need a command buffer with a 32 bit address because
++	 * without an MMU there is only an indentity mapping between
++	 * the internal 32 bit addresses and the bus addresses.
++	 *
++	 * To make things easy, we set the dma_coherent_mask to 32
++	 * bit to make sure we are allocating the command buffers and
++	 * TLBs in the lower 4 GiB address space.
++	 */
++	if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(40)) ||
++	    dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32))) {
++		dev_dbg(&pdev->dev, "No suitable DMA available\n");
++		return -ENODEV;
++	}
++
++	/*
++	 * Apply the same DMA configuration to the virtual etnaviv
++	 * device as the GPU we found. This assumes that all Vivante
++	 * GPUs in the system share the same DMA constraints.
++	 */
++	if (first_node)
++		of_dma_configure(&pdev->dev, first_node, true);
++
+ 	return component_master_add_with_match(dev, &etnaviv_master_ops, match);
+ }
+ 
+@@ -660,7 +693,7 @@ static int __init etnaviv_init(void)
+ 		if (!of_device_is_available(np))
+ 			continue;
+ 
+-		pdev = platform_device_alloc("etnaviv", -1);
++		pdev = platform_device_alloc("etnaviv", PLATFORM_DEVID_NONE);
+ 		if (!pdev) {
+ 	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 			ret = -ENOMEM;
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c b/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c
+index 90488ab8c6d8..7c21a193f657 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c
+@@ -475,6 +475,12 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data,
+ 		return -EINVAL;
+ 	}
+ 
++	if (args->stream_size > SZ_64K || args->nr_relocs > SZ_64K ||
++	    args->nr_bos > SZ_64K || args->nr_pmrs > 128) {
++		DRM_ERROR("submit arguments out of size limits\n");
++		return -EINVAL;
++	}
++
+ 	/*
+ 	 * Copy the command submission and bo array to kernel space in
+ 	 * one go, and do this outside of any locks.
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c b/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+index 7c0c517e99f6..ab4fdd9b86e4 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+@@ -14,6 +14,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/thermal.h>
++#include <linux/memblock.h>
+ 
+ #include "etnaviv_cmdbuf.h"
+ #include "etnaviv_dump.h"
+@@ -751,12 +752,14 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
+ 	dma_addr_t cmdbuf_paddr;
+ 	int ret, i;
+ 
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	ret = pm_runtime_get_sync(gpu->dev);
+ 	if (ret < 0) {
+ 		dev_err(gpu->dev, "Failed to enable GPU power domain\n");
+ 		goto pm_put;
+ 	}
+ 
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	etnaviv_hw_identify(gpu);
+ 
+ 	if (gpu->identity.model == 0) {
+@@ -781,12 +784,14 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
+ 	    (gpu->identity.minor_features10 & chipMinorFeatures10_SECURITY_AHB))
+ 		gpu->sec_mode = ETNA_SEC_KERNEL;
+ 
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	ret = etnaviv_hw_reset(gpu);
+ 	if (ret) {
+ 		dev_err(gpu->dev, "GPU reset failed\n");
+ 		goto fail;
+ 	}
+ 
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	ret = etnaviv_iommu_global_init(gpu);
+ 	if (ret)
+ 		goto fail;
+@@ -796,10 +801,12 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
+ 	 * request pages for our SHM backend buffers from the DMA32 zone to
+ 	 * hopefully avoid performance killing SWIOTLB bounce buffering.
+ 	 */
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	if (dma_addressing_limited(gpu->dev))
+ 		priv->shm_gfp_mask |= GFP_DMA32;
+ 
+ 	/* Create buffer: */
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	ret = etnaviv_cmdbuf_init(priv->cmdbuf_suballoc, &gpu->buffer,
+ 				  PAGE_SIZE);
+ 	if (ret) {
+@@ -817,20 +824,48 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
+ 	 * leading to inconsistent memory views. Avoid using the offset on those
+ 	 * cores if possible, otherwise disable the TS feature.
+ 	 */
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	cmdbuf_paddr = ALIGN_DOWN(etnaviv_cmdbuf_get_pa(&gpu->buffer), SZ_128M);
+ 
++	if (!(gpu->identity.features & chipFeatures_PIPE_3D) || (gpu->identity.minor_features0 & chipMinorFeatures0_MC20)) {
++		u32 max_memory = min((u32) dma_get_required_mask(gpu->dev),memblock_end_of_DRAM());
++		if (max_memory <= SZ_2G + PHYS_OFFSET){
++		printk("HDEBUG %s %d",__func__,__LINE__);
++			priv->mmu_global->memory_base = PHYS_OFFSET;
++			}
++		else{
++		printk("HDEBUG %s %d",__func__,__LINE__);
++			priv->mmu_global->memory_base = max_memory - SZ_2G;
++		}
++	} else if (PHYS_OFFSET >= SZ_2G) {
++		printk("HDEBUG %s %d",__func__,__LINE__);
++		dev_info(priv->mmu_global->dev, "Himanshu Need to move linear window on MC1.0,disabling TS\n");
++		//priv->mmu_global->memory_base = PHYS_OFFSET;
++		//priv->mmu_global->memory_base = 2073741824;
++	}
++		printk("HDEBUG %s %d",__func__,__LINE__);
+ 	if (!(gpu->identity.features & chipFeatures_PIPE_3D) ||
+ 	    (gpu->identity.minor_features0 & chipMinorFeatures0_MC20)) {
+-		if (cmdbuf_paddr >= SZ_2G)
++		if (cmdbuf_paddr >= SZ_2G){
++			printk("HDEBUG %s %d",__func__,__LINE__);
+ 			priv->mmu_global->memory_base = SZ_2G;
+-		else
++			printk("HDEBUG %s %d",__func__,__LINE__);
++			}
++		else{
++			printk("HDEBUG %s %d",__func__,__LINE__);
+ 			priv->mmu_global->memory_base = cmdbuf_paddr;
++			printk("HDEBUG %s %d",__func__,__LINE__);
++		}
+ 	} else if (cmdbuf_paddr + SZ_128M >= SZ_2G) {
+ 		dev_info(gpu->dev,
+ 			 "Need to move linear window on MC1.0, disabling TS\n");
+ 		gpu->identity.features &= ~chipFeatures_FAST_CLEAR;
+-		priv->mmu_global->memory_base = SZ_2G;
++		//priv->mmu_global->memory_base = SZ_2G;
++		//priv->mmu_global->memory_base = PHYS_OFFSET;
++		priv->mmu_global->memory_base = 2073741824;
++			printk("HDEBUG %s %d %lld %d",__func__,__LINE__,PHYS_OFFSET,SZ_2G);
+ 	}
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 
+ 	/* Setup event management */
+ 	spin_lock_init(&gpu->event_spinlock);
+@@ -846,14 +881,17 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
+ 
+ 	pm_runtime_mark_last_busy(gpu->dev);
+ 	pm_runtime_put_autosuspend(gpu->dev);
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 
+ 	gpu->initialized = true;
+ 
+ 	return 0;
+ 
+ fail:
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	pm_runtime_mark_last_busy(gpu->dev);
+ pm_put:
++	printk("HDEBUG %s %d",__func__,__LINE__);
+ 	pm_runtime_put_autosuspend(gpu->dev);
+ 
+ 	return ret;
+@@ -1434,7 +1472,11 @@ static void dump_mmu_fault(struct etnaviv_gpu *gpu)
+ 	else
+ 		status_reg = VIVS_MMUv2_SEC_STATUS;
+ 
++	printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
++	status = -1;
+ 	status = gpu_read(gpu, status_reg);
++	
++	printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 	dev_err_ratelimited(gpu->dev, "MMU fault status 0x%08x\n", status);
+ 
+ 	for (i = 0; i < 4; i++) {
+@@ -1466,14 +1508,17 @@ static irqreturn_t irq_handler(int irq, void *data)
+ 		pm_runtime_mark_last_busy(gpu->dev);
+ 
+ 		dev_dbg(gpu->dev, "intr 0x%08x\n", intr);
+-
++		printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR) {
+ 			dev_err(gpu->dev, "AXI bus error\n");
+ 			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR;
++			printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 		}
+ 
+ 		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION) {
++			printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 			dump_mmu_fault(gpu);
++			printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_MMU_EXCEPTION;
+ 		}
+ 
+@@ -1658,7 +1703,7 @@ etnaviv_gpu_cooling_set_cur_state(struct thermal_cooling_device *cdev,
+ 	return 0;
+ }
+ 
+-static struct thermal_cooling_device_ops cooling_ops = {
++static const struct thermal_cooling_device_ops cooling_ops = {
+ 	.get_max_state = etnaviv_gpu_cooling_get_max_state,
+ 	.get_cur_state = etnaviv_gpu_cooling_get_cur_state,
+ 	.set_cur_state = etnaviv_gpu_cooling_set_cur_state,
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_mmu.c b/drivers/gpu/drm/etnaviv/etnaviv_mmu.c
+index aabb997a74eb..7aeada8d3459 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_mmu.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_mmu.c
+@@ -263,6 +263,7 @@ int etnaviv_iommu_map_gem(struct etnaviv_iommu_context *context,
+ 		goto unlock;
+ 
+ 	mapping->iova = node->start;
++	printk("HDEBUG: etnaviv_obj->base.size %d\n",etnaviv_obj->base.size);
+ 	ret = etnaviv_iommu_map(context, node->start, sgt, etnaviv_obj->base.size,
+ 				ETNAVIV_PROT_READ | ETNAVIV_PROT_WRITE);
+ 
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_sched.c b/drivers/gpu/drm/etnaviv/etnaviv_sched.c
+index bbf391f48f94..f04d8ef2af8a 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_sched.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_sched.c
+@@ -119,7 +119,9 @@ static enum drm_gpu_sched_stat etnaviv_sched_timedout_job(struct drm_sched_job
+ 
+ 	/* get the GPU back into the init state */
+ 	etnaviv_core_dump(submit);
++	printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 	etnaviv_gpu_recover_hang(gpu);
++	printk("HDEBUG func : %s # Line : %d\n",__func__,__LINE__);
+ 
+ 	drm_sched_resubmit_jobs(&gpu->sched);
+ 
+-- 
+2.25.1
+

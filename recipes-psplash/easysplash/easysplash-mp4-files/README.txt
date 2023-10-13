@@ -1,1 +1,0 @@
-$ easysplash open glowing-logo

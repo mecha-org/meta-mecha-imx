@@ -17,11 +17,17 @@ SRC_URI:append = " file://0001-Add-Changes-to-enable-wifi-in-imx8mmlpd4.patch \
 	file://0014-added-support-for-multiple-sample-rate.patch \
 	file://0015-Fix-cpu-governor-issue.patch \
 	file://0016-Fix-audio-sample-rate-and-tempo-issue.patch \
-	file://0016-change-linux-logo.patch \
-	file://0017-etnaviv-enable-in-imx8mm-dtsi.patch \
+	file://0017-change-linux-logo.patch \
 	file://0018-etnaviv-drv-c.patch \
 	file://0019-etnaviv-gpu-c.patch \
+	file://0020-etnaviv-enable-in-imx8mm-dtsi.patch \
+	file://0021-Resolve-GPU-issue-in-4GB-RAM-with-sway.patch \
+	file://0022-Add-fuel-guage-bq27441-calibration.patch \
 	"
+
+#	file://0001-Working-GPU-Sway-Fix.patch 
+#	file://0002-GPU-with-4GB-RAM-Dts-Changes-Working.patch 
+
 
 do_configure:append () {
 	echo "############ Writing MECHA configs ############### "
@@ -30,17 +36,17 @@ do_configure:append () {
 
 	# echo "############  4GB-SOM Changes  ############### "
 
-	# sed -i "/CONFIG_PCI_LAYERSCAPE[=]/d" $config
-	# echo "CONFIG_PCI_LAYERSCAPE=n" >> $config
+	sed -i "/CONFIG_PCI_LAYERSCAPE[=]/d" $config
+	echo "CONFIG_PCI_LAYERSCAPE=n" >> $config
 
-	# sed -i "/CONFIG_PCI_IMX6[=]/d" $config
-	# echo "CONFIG_PCI_IMX6=n" >> $config
+	sed -i "/CONFIG_PCI_IMX6[=]/d" $config
+	echo "CONFIG_PCI_IMX6=n" >> $config
 
-	# sed -i "/CONFIG_PCI_IMX6_HOST[=]/d" $config
-	# echo "CONFIG_PCI_IMX6_HOST=n" >> $config
+	sed -i "/CONFIG_PCI_IMX6_HOST[=]/d" $config
+	echo "CONFIG_PCI_IMX6_HOST=n" >> $config
 
-	# sed -i "/CONFIG_PCI_IMX6_EP[=]/d" $config
-	# echo "CONFIG_PCI_IMX6_EP=n" >> $config
+	sed -i "/CONFIG_PCI_IMX6_EP[=]/d" $config
+	echo "CONFIG_PCI_IMX6_EP=n" >> $config
 
 	############ For MECHA ##############
 	echo "############ etnaviv enable configs ############" >> $config
@@ -158,6 +164,7 @@ do_configure:append () {
 	sed -i "/CONFIG_GPIO_SYSFS[ =]/d" $config
 	echo "CONFIG_GPIO_SYSFS=y" >> $config
 	
+	############ Default CPU Governer ##############
 	sed -i "/# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE[ =]/d" $config
 	echo "CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y" >> $config
 

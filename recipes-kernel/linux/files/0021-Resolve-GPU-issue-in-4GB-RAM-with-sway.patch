@@ -1,0 +1,179 @@
+From eddd26bb9aa8bc1a93b68f0eec3f51d81bb541d4 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Tue, 26 Sep 2023 20:17:40 +0530
+Subject: [PATCH] Resolve GPU issue in 4GB RAM with sway
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_drv.c b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+index afd316631c1e..8f1c8c4a4cb4 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_drv.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+@@ -32,16 +32,14 @@ static void load_gpu(struct drm_device *dev)
+ {
+ 	struct etnaviv_drm_private *priv = dev->dev_private;
+ 	unsigned int i;
+-
+ 	for (i = 0; i < ETNA_MAX_PIPES; i++) {
+ 		struct etnaviv_gpu *g = priv->gpu[i];
+-
+ 		if (g) {
+ 			int ret;
+-
+ 			ret = etnaviv_gpu_init(g);
+-			if (ret)
++			if (ret){
+ 				priv->gpu[i] = NULL;
++			}
+ 		}
+ 	}
+ }
+@@ -589,6 +587,7 @@ static int compare_str(struct device *dev, void *data)
+ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
++	struct device_node *first_node = NULL;
+ 	struct component_match *match = NULL;
+ 	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	if (!dev->platform_data) {
+@@ -599,6 +598,9 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 			if (!of_device_is_available(core_node))
+ 				continue;
+ 
++			if (!first_node)
++				first_node = core_node;
++
+ 			drm_of_component_match_add(&pdev->dev, &match,
+ 						   compare_of, core_node);
+ 		}
+@@ -612,6 +614,33 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
++
++	/*
++	 * PTA and MTLB can have 40 bit base addresses, but
++	 * unfortunately, an entry in the MTLB can only point to a
++	 * 32 bit base address of a STLB. Moreover, to initialize the
++	 * MMU we need a command buffer with a 32 bit address because
++	 * without an MMU there is only an indentity mapping between
++	 * the internal 32 bit addresses and the bus addresses.
++	 *
++	 * To make things easy, we set the dma_coherent_mask to 32
++	 * bit to make sure we are allocating the command buffers and
++	 * TLBs in the lower 4 GiB address space.
++	 */
++	if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(40)) ||
++	    dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32))) {
++		dev_dbg(&pdev->dev, "No suitable DMA available\n");
++		return -ENODEV;
++	}
++
++	/*
++	 * Apply the same DMA configuration to the virtual etnaviv
++	 * device as the GPU we found. This assumes that all Vivante
++	 * GPUs in the system share the same DMA constraints.
++	 */
++	if (first_node)
++		of_dma_configure(&pdev->dev, first_node, true);
++
+ 	return component_master_add_with_match(dev, &etnaviv_master_ops, match);
+ }
+ 
+@@ -660,7 +689,7 @@ static int __init etnaviv_init(void)
+ 		if (!of_device_is_available(np))
+ 			continue;
+ 
+-		pdev = platform_device_alloc("etnaviv", -1);
++		pdev = platform_device_alloc("etnaviv", PLATFORM_DEVID_NONE);
+ 		if (!pdev) {
+ 	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 			ret = -ENOMEM;
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c b/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c
+index 90488ab8c6d8..7c21a193f657 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_gem_submit.c
+@@ -475,6 +475,12 @@ int etnaviv_ioctl_gem_submit(struct drm_device *dev, void *data,
+ 		return -EINVAL;
+ 	}
+ 
++	if (args->stream_size > SZ_64K || args->nr_relocs > SZ_64K ||
++	    args->nr_bos > SZ_64K || args->nr_pmrs > 128) {
++		DRM_ERROR("submit arguments out of size limits\n");
++		return -EINVAL;
++	}
++
+ 	/*
+ 	 * Copy the command submission and bo array to kernel space in
+ 	 * one go, and do this outside of any locks.
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c b/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+index 7c0c517e99f6..9b0292b1b79b 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+@@ -14,6 +14,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/thermal.h>
++#include <linux/memblock.h>
+ 
+ #include "etnaviv_cmdbuf.h"
+ #include "etnaviv_dump.h"
+@@ -819,12 +820,26 @@ int etnaviv_gpu_init(struct etnaviv_gpu *gpu)
+ 	 */
+ 	cmdbuf_paddr = ALIGN_DOWN(etnaviv_cmdbuf_get_pa(&gpu->buffer), SZ_128M);
+ 
++	if (!(gpu->identity.features & chipFeatures_PIPE_3D) || (gpu->identity.minor_features0 & chipMinorFeatures0_MC20)) {
++		u32 max_memory = min((u32) dma_get_required_mask(gpu->dev),memblock_end_of_DRAM());
++		if (max_memory <= SZ_2G + PHYS_OFFSET){
++			priv->mmu_global->memory_base = PHYS_OFFSET;
++			}
++		else{
++			priv->mmu_global->memory_base = max_memory - SZ_2G;
++		}
++	} else if (PHYS_OFFSET >= SZ_2G) {
++		dev_info(priv->mmu_global->dev, "Need to move linear window on MC1.0,disabling TS\n");
++		priv->mmu_global->memory_base = PHYS_OFFSET;
++	}
+ 	if (!(gpu->identity.features & chipFeatures_PIPE_3D) ||
+ 	    (gpu->identity.minor_features0 & chipMinorFeatures0_MC20)) {
+-		if (cmdbuf_paddr >= SZ_2G)
++		if (cmdbuf_paddr >= SZ_2G){
+ 			priv->mmu_global->memory_base = SZ_2G;
+-		else
++			}
++		else{
+ 			priv->mmu_global->memory_base = cmdbuf_paddr;
++		}
+ 	} else if (cmdbuf_paddr + SZ_128M >= SZ_2G) {
+ 		dev_info(gpu->dev,
+ 			 "Need to move linear window on MC1.0, disabling TS\n");
+@@ -1434,7 +1449,9 @@ static void dump_mmu_fault(struct etnaviv_gpu *gpu)
+ 	else
+ 		status_reg = VIVS_MMUv2_SEC_STATUS;
+ 
++	status = -1;
+ 	status = gpu_read(gpu, status_reg);
++
+ 	dev_err_ratelimited(gpu->dev, "MMU fault status 0x%08x\n", status);
+ 
+ 	for (i = 0; i < 4; i++) {
+@@ -1466,7 +1483,6 @@ static irqreturn_t irq_handler(int irq, void *data)
+ 		pm_runtime_mark_last_busy(gpu->dev);
+ 
+ 		dev_dbg(gpu->dev, "intr 0x%08x\n", intr);
+-
+ 		if (intr & VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR) {
+ 			dev_err(gpu->dev, "AXI bus error\n");
+ 			intr &= ~VIVS_HI_INTR_ACKNOWLEDGE_AXI_BUS_ERROR;
+@@ -1658,7 +1674,7 @@ etnaviv_gpu_cooling_set_cur_state(struct thermal_cooling_device *cdev,
+ 	return 0;
+ }
+ 
+-static struct thermal_cooling_device_ops cooling_ops = {
++static const struct thermal_cooling_device_ops cooling_ops = {
+ 	.get_max_state = etnaviv_gpu_cooling_get_max_state,
+ 	.get_cur_state = etnaviv_gpu_cooling_get_cur_state,
+ 	.set_cur_state = etnaviv_gpu_cooling_set_cur_state,
+-- 
+2.25.1
+
