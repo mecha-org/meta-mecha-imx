@@ -40,7 +40,7 @@ index 000000000000..94a07c296a06
 +#include "imx8mm.dtsi"
 +
 +/ {
-+	model = "FSL i.MX8MM Demo board";
++	model = "Mecha_Comet_M_Gen1";
 +	compatible = "fsl,imx8mm-evk", "fsl,imx8mm";
 +
 +	reserved-memory {

@@ -1,0 +1,104 @@
+From 37124ce69a5dd27ffe61f5993a97697f7250f90a Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Mon, 30 Oct 2023 21:32:23 +0530
+Subject: [PATCH] Update config of fuel-gauge
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+index 243044e7223e..c2c7f6469c7f 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+@@ -165,29 +165,35 @@ bq27440: fuel-gauge@55 {
+ 		monitored-battery = <&bat>;
+ 		bat: battery {
+ 			compatible = "simple-battery";
+-			over-voltage-threshold-microvolt = <4500000>;
+-			re-charge-voltage-microvolt = <250000>;
+-			voltage-min-design-microvolt = <3200000>;
++			device-chemistry = "lithium-ion-polymer";
++
++			energy-full-design-microwatt-hours = <16800000>;
++			charge-full-design-microamp-hours = <4000000>;
++			voltage-min-design-microvolt = <3000000>;
+ 			voltage-max-design-microvolt = <4200000>;
+-			energy-full-design-microwatt-hours = <5290000>;
+-			charge-full-design-microamp-hours = <1430000>;
+-			precharge-current-microamp = <256000>;
+-			precharge-upper-limit-microvolt = <2500000>;
+-			charge-term-current-microamp = <128000>;
+-			constant-charge-current-max-microamp = <900000>;
+-			constant-charge-voltage-max-microvolt = <4200000>;
+-			factory-internal-resistance-micro-ohms = <250000>;
+-			ocv-capacity-celsius = <(-10) 0 10>;
++//			trickle-charge-current-microamp = <1500000>;
++//			precharge-current-microamp = <256000>;
++//			precharge-upper-limit-microvolt = <3000000>;
++//			charge-term-current-microamp = <128000>;
++//			re-charge-voltage-microvolt = <3000000>;
++			over-voltage-threshold-microvolt = <4500000>;
++//			constant-charge-current-max-microamp = <2000000>;
++//			constant-charge-voltage-max-microvolt = <4300000>;
++//			factory-internal-resistance-micro-ohms = <1000>;
++			
++//			ambient-celsius = <(-5) 50>;
++//			alert-celsius = <0 40>;
++//			operating-range-celsius = <(-30) 50>;
++
++//			ocv-capacity-celsius = <(-10) 0 10>;
+ 			/* table for -10 degree Celsius */
+-			ocv-capacity-table-0 = <4185000 100>, <4113000 95>, <4066000 90>;
++//			ocv-capacity-table-0 = <4185000 100>, <4113000 95>, <4066000 90>;
+ 			/* table for 0 degree Celsius */
+-			ocv-capacity-table-1 = <4200000 100>, <4185000 95>, <4113000 90>;
++//			ocv-capacity-table-1 = <4200000 100>, <4185000 95>, <4113000 90>;
+ 			/* table for 10 degree Celsius */
+-			ocv-capacity-table-2 = <4250000 100>, <4200000 95>, <4185000 90>;
+-			resistance-temp-table = <20 100>, <10 90>, <0 80>, <(-10) 60>;
+-			operating-range-celsius = <(-30) 50>;
+-			ambient-celsius = <(-5) 50>;
+-			alert-celsius = <0 40>;
++//			ocv-capacity-table-2 = <4250000 100>, <4200000 95>, <4185000 90>;
++//			resistance-temp-table = <20 100>, <10 90>, <0 80>, <(-10) 60>;
++
+ 		};
+ 	};
+ 
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
+index 7e5e24b585d8..5b75bf49d990 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -934,11 +934,7 @@ static struct bq27xxx_dm_reg bq27426_dm_regs[] = {
+ 	[BQ27XXX_DM_TERMINATE_VOLTAGE] = { 82, 10, 2, 2500,  3700 },
+ };
+ 
+-#if 0 /* not yet tested */
+ #define bq27441_dm_regs bq27421_dm_regs
+-#else
+-#define bq27441_dm_regs 0
+-#endif
+ 
+ #if 0 /* not yet tested */
+ static struct bq27xxx_dm_reg bq27621_dm_regs[] = {
+diff --git a/drivers/power/supply/power_supply_core.c b/drivers/power/supply/power_supply_core.c
+index a6e9afa5a1cf..c1656fec7033 100644
+--- a/drivers/power/supply/power_supply_core.c
++++ b/drivers/power/supply/power_supply_core.c
+@@ -608,12 +608,12 @@ int power_supply_get_battery_info(struct power_supply *psy,
+ 	err = of_property_read_string(battery_np, "compatible", &value);
+ 	if (err)
+ 		goto out_put_node;
+-
++/*
+ 	if (strcmp("simple-battery", value)) {
+ 		err = -ENODEV;
+ 		goto out_put_node;
+ 	}
+-
++*/
+ 	/* The property and field names below must correspond to elements
+ 	 * in enum power_supply_property. For reasoning, see
+ 	 * Documentation/power/power_supply_class.rst.
+-- 
+2.25.1
+

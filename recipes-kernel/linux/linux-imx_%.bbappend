@@ -23,7 +23,11 @@ SRC_URI:append = " file://0001-Add-Changes-to-enable-wifi-in-imx8mmlpd4.patch \
 	file://0020-etnaviv-enable-in-imx8mm-dtsi.patch \
 	file://0021-Resolve-GPU-issue-in-4GB-RAM-with-sway.patch \
 	file://0022-Add-fuel-guage-bq27441-calibration.patch \
+	file://0025-Update-config-of-fuel-gauge.patch \
 	"
+
+#	file://0023-Dts-Overlay-Complie-with-symbols.patch 
+#	file://0024-Compile-dtb-with-symbols-for-overlay-support.patch 
 
 #	file://0001-Working-GPU-Sway-Fix.patch 
 #	file://0002-GPU-with-4GB-RAM-Dts-Changes-Working.patch 

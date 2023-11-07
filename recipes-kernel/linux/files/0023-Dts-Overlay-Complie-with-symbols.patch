@@ -1,0 +1,29 @@
+From ce69ec50d3926cfd2750fe0605356a4fc62fbd35 Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Sat, 9 Sep 2023 14:27:01 +0530
+Subject: [PATCH] Dts Overlay Complie with symbols
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
+index f46cfd9a1f60..55ca26439466 100644
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -1,7 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+-## required for overlay support
+-DTC_FLAGS_mecha-comet-m-gen1 := -@
+ 
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frdm.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frwy.dtb
+@@ -242,3 +240,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx93-9x9-qsb.dtb \
+ 			  imx93-9x9-qsb-mt9m114.dtb
+ dtb-$(CONFIG_ARCH_S32) += s32v234-evb.dtb \
+ 			  s32v234-sbc.dtb
++
++
++## required for overlay support
++DTC_FLAGS_mecha-comet-m-gen1 := -@
+-- 
+2.25.1
