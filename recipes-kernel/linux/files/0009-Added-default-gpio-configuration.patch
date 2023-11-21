@@ -7,10 +7,10 @@ Subject: [PATCH] Added default gpio configuration
 
 Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
 
-diff --git a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 index 268ac1dbf413..11987643651e 100644
---- a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
-+++ b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 @@ -31,6 +31,13 @@ led_blue: red_blue {
  			gpios = <&gpio4 29 GPIO_ACTIVE_HIGH>;
  		};

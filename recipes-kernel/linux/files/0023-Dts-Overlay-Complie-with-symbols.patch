@@ -13,7 +13,7 @@ index f46cfd9a1f60..55ca26439466 100644
  # SPDX-License-Identifier: GPL-2.0
  
 -## required for overlay support
--DTC_FLAGS_mecha-comet-m-gen1 := -@
+-DTC_FLAGS_imx8mm-mecha-comet-m-gen1 := -@
  
  dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frdm.dtb
  dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frwy.dtb
@@ -24,6 +24,6 @@ index f46cfd9a1f60..55ca26439466 100644
 +
 +
 +## required for overlay support
-+DTC_FLAGS_mecha-comet-m-gen1 := -@
++DTC_FLAGS_imx8mm-mecha-comet-m-gen1 := -@
 -- 
 2.25.1

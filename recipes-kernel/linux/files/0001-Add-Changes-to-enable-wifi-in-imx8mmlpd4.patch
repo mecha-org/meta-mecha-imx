@@ -3,7 +3,7 @@ From: HardevSinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
 Date: Wed, 26 Apr 2023 18:50:54 +0530
 Subject: [PATCH 1/2] Add Changes to enable wifi in imx8mmlpd4
 
-- Add new dts: fsl-imx8mm-demo.dts
+- Add new dts: imx8mm-mecha-som-gen1.dts
 - Add config file: imx8mm_demo_defconfig
 - Enable Wifi node
 
@@ -19,15 +19,15 @@ index 9a7319c6b4e3..116ef3e696ee 100644
  dtb-$(CONFIG_ARCH_MXC) += imx8mm-ab2.dtb imx8mm-ab2-m4.dtb imx8mm-ddr4-ab2.dtb imx8mm-ddr4-ab2-m4.dtb \
 -			  imx8mm-ddr4-ab2-revb.dtb imx8mm-ddr4-ab2-m4-revb.dtb
 +		          imx8mm-ddr4-ab2-revb.dtb imx8mm-ddr4-ab2-m4-revb.dtb \
-+			  fsl-imx8mm-demo.dtb
++			  imx8mm-mecha-som-gen1.dtb
  dtb-$(CONFIG_ARCH_MXC) += imx8mn-evk.dtb imx8mn-evk-rm67191.dtb imx8mn-evk-rpmsg.dtb imx8mn-evk-ak5558.dtb \
  			  imx8mn-evk-8mic-revE.dtb imx8mn-evk-8mic-swpdm.dtb imx8mn-ddr3l-evk.dtb \
  			  imx8mn-evk-iqaudio-dacplus.dtb imx8mn-evk-iqaudio-dacpro.dtb imx8mn-evk-hifiberry-dacplus.dtb \
-diff --git a/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts b/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts
 new file mode 100644
 index 000000000000..94a07c296a06
 --- /dev/null
-+++ b/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts
 @@ -0,0 +1,845 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
@@ -1945,8 +1945,8 @@ index 000000000000..4ddf3997cb2e
 +DESTDIR="/dev/shm/"
 +
 +build_arm64() {
-+	SRCDTB="arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dtb"
-+	DSTDTB="fsl-imx8mm-demo.dtb"
++	SRCDTB="arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dtb"
++	DSTDTB="imx8mm-mecha-som-gen1.dtb"
 +	SRCKER="arch/arm64/boot/Image"
 +	DSTKER="Image"
 +

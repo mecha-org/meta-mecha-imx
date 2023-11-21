@@ -19,13 +19,14 @@ SRC_URI = "\
     file://${BPN}.default \
 "
 
-SRC_URI_sama5d27-som1-ek-sd += "file://0001-init-systemd-unblank-framebuffer-before.patch"
+#SRC_URI_sama5d27-som1-ek-sd += "file://0001-init-systemd-unblank-framebuffer-before.patch"
 
 PV = "1.0.0+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-inherit cmake pkgconfig update-rc.d systemd
+inherit cmake pkgconfig systemd 
+# inherit update-rc.d 
 
 # We want the binaries to be in /sbin
 EXTRA_OECMAKE += "\
@@ -37,11 +38,11 @@ EXTRA_OECMAKE += "\
 INITSCRIPT_NAME = "${PN}-start"
 INITSCRIPT_PARAMS_${PN} = "start 5 S ."
 
-SYSTEMD_SERVICE_${PN} = "${PN}-start.service ${PN}-quit.service"
+SYSTEMD_SERVICE:${PN} = "${PN}-start.service ${PN}-quit.service"
 SYSTEMD_AUTO_ENABLE:${PN}-start.service = "enable"
 SYSTEMD_AUTO_ENABLE:${PN}-quit.service = "enable"
 
-PACKAGECONFIG_DISTRO ?= "\
+PACKAGECONFIG_DISTRO ?= " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'sysvinit', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', '', d)} \
 "
@@ -61,7 +62,7 @@ PACKAGECONFIG[vivante-gles2] = "-DDISPLAY_TYPE_GLES=TRUE -DEGL_PLATFORM_VIV_FB=T
 # libgbm is part of the mesa recipe
 PACKAGECONFIG[mesa-gbm] = "-DDISPLAY_TYPE_GLES=TRUE -DEGL_PLATFORM_GBM=TRUE,,virtual/libgles2 mesa libdrm udev"
 PACKAGECONFIG[rpi-dispmanx] = "-DDISPLAY_TYPE_GLES=TRUE -DEGL_PLATFORM_RPI_DISPMANX=TRUE,,virtual/libgles2 userland"
-PACKAGECONFIG[sysvinit] = "-DENABLE_SYSVINIT_SUPPORT=TRUE, -DENABLE_SYSVINIT_SUPPORT=FALSE"
+PACKAGECONFIG[sysvinit] = "-DENABLE_SYSVINIT_SUPPORT=FALSE, -DENABLE_SYSVINIT_SUPPORT=FALSE"
 PACKAGECONFIG[systemd] = "-DENABLE_SYSTEMD_SUPPORT=TRUE, -DENABLE_SYSTEMD_SUPPORT=FALSE, systemd"
 
 do_install:append() {

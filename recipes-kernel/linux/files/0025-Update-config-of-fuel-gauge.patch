@@ -5,10 +5,10 @@ Subject: [PATCH] Update config of fuel-gauge
 
 Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
 
-diff --git a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 index 243044e7223e..c2c7f6469c7f 100644
---- a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
-+++ b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 @@ -165,29 +165,35 @@ bq27440: fuel-gauge@55 {
  		monitored-battery = <&bat>;
  		bat: battery {

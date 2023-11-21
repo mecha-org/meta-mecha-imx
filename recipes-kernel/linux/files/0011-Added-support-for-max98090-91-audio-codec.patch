@@ -5,10 +5,10 @@ Subject: [PATCH] Added support for max98090/91 audio codec
 
 Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
 
-diff --git a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 index 92d60dc01965..8dada00b039e 100644
---- a/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
-+++ b/arch/arm64/boot/dts/freescale/mecha-comet-m-gen1.dts
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 @@ -196,7 +196,10 @@ max98090: max98090@10 {
  		compatible = "maxim,max98091";
  		reg = <0x10>;

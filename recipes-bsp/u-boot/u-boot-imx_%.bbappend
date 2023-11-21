@@ -6,7 +6,7 @@ DEPENDS:append = " dtc-native bison-native"
 
 #SRCREV = "ffc3fbe7e5418d16f492c78693c3c4fa41f06f27"
 
-SRC_URI += " file://0001-Set-mecha-comet-m-gen1.dtb-as-default.patch \
+SRC_URI += " file://0001-Set-imx8mm-mecha-comet-m-gen1.dtb-as-default.patch \
 	    	 file://0002-Remove-unwanted-nodes.patch \
 	     	 file://0003-Added-bq27xxx-fuel-gauge-support.patch \
 	     	 file://0004-Added-st7701-display-controller-and-backlight-suppor.patch \
