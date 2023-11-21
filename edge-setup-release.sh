@@ -165,7 +165,6 @@ echo "BB_NUMBER_THREADS = \"25\"" >> conf/local.conf
 echo "LICENSE_FLAGS_ACCEPTED=\"commercial\" " >> conf/local.conf
 echo "# Switch to Debian packaging and include package-management in the image" >> conf/local.conf
 echo "PACKAGE_CLASSES = \"package_deb\"" >> conf/local.conf
-#echo "EXTRA_IMAGE_FEATURES += \"package-management\"" >> conf/local.conf
 echo "DDRSIZE = \"1\"" >> conf/local.conf
 
 
@@ -198,6 +197,7 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-networking\"" >> $
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-filesystems\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-perl\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-xfce\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-initramfs\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "" >> $BUILD_DIR/conf/bblayers.conf
 
 # Adding Mecha layers
@@ -209,11 +209,10 @@ echo "" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-virtualization\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-rust\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-clang\"" >> $BUILD_DIR/conf/bblayers.conf
-echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rauc\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-webkit\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-browser/meta-chromium\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-qt6\"" >> $BUILD_DIR/conf/bblayers.conf
-echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-nxp-demo-experiance\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rauc\"" >> $BUILD_DIR/conf/bblayers.conf
 
 echo BSPDIR=$BSPDIR
 echo BUILD_DIR=$BUILD_DIR

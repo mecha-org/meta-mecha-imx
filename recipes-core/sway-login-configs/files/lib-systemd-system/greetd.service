@@ -4,11 +4,10 @@ After=systemd-user-sessions.service plymouth-quit-wait.service
 After=getty@tty1.service
 Conflicts=getty@tty1.service
 
-Requires=dev-dri-card0.device
-After=dev-dri-card0.device
-
-Requires=dev-dri-card1.device
-After=dev-dri-card1.device
+# Requires=dev-dri-card0.device
+# After=dev-dri-card0.device
+# Requires=dev-dri-card1.device
+# After=dev-dri-card1.device
 
 
 # On systems without virtual consoles, don't start greetd. Note

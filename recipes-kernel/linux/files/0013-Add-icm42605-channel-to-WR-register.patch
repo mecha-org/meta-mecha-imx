@@ -1,0 +1,134 @@
+From 5a2364c46f7ab5471ffb3d1a16a235d36617cd4c Mon Sep 17 00:00:00 2001
+From: HardevSinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Sat, 14 Oct 2023 15:01:58 +0530
+Subject: [PATCH] tilt
+
+
+diff --git a/drivers/iio/imu/inv_icm42600/inv_icm42600.h b/drivers/iio/imu/inv_icm42600/inv_icm42600.h
+index 995a9dc06..2c6a0f102 100644
+--- a/drivers/iio/imu/inv_icm42600/inv_icm42600.h
++++ b/drivers/iio/imu/inv_icm42600/inv_icm42600.h
+@@ -186,6 +186,8 @@ struct inv_icm42600_state {
+ #define INV_ICM42600_FIFO_CONFIG_STOP_ON_FULL		\
+ 		FIELD_PREP(INV_ICM42600_FIFO_CONFIG_MASK, 2)
+ 
++#define INV_ICM42600_REG_MASK        GENMASK(7, 0)
++
+ /* all sensor data are 16 bits (2 registers wide) in big-endian */
+ #define INV_ICM42600_REG_TEMP_DATA			0x001D
+ #define INV_ICM42600_REG_ACCEL_DATA_X			0x001F
+diff --git a/drivers/iio/imu/inv_icm42600/inv_icm42600_accel.c b/drivers/iio/imu/inv_icm42600/inv_icm42600_accel.c
+index 383cc3250..44bc51a1c 100644
+--- a/drivers/iio/imu/inv_icm42600/inv_icm42600_accel.c
++++ b/drivers/iio/imu/inv_icm42600/inv_icm42600_accel.c
+@@ -19,6 +19,10 @@
+ #include "inv_icm42600_buffer.h"
+ #include "inv_icm42600_timestamp.h"
+ 
++struct inv_icm42600_state *g_st;
++int etx_data[4];
++char read_reg;
++
+ #define INV_ICM42600_ACCEL_CHAN(_modifier, _index, _ext_info)		\
+ 	{								\
+ 		.type = IIO_ACCEL,					\
+@@ -59,6 +63,80 @@ static const struct iio_chan_spec_ext_info inv_icm42600_accel_ext_infos[] = {
+ 	{},
+ };
+ 
++static ssize_t register_rw_show(struct device *dev,
++                               struct device_attribute *attr, char *buf)
++{
++	int ret;
++	uint32_t val;
++
++	ret = regmap_read(g_st->map, read_reg, &val);
++
++	if (ret != 0) {
++		printk(KERN_ERR "Error reading data from IIO device\n");
++		return ret;
++	}
++
++	snprintf(buf, PAGE_SIZE, "Read reg %x value %x\n", read_reg, val);
++
++	return strlen(buf);
++}
++
++static ssize_t register_rw_store(struct device *dev,
++                                struct device_attribute *attr, const char *buf,
++                                size_t count)
++{
++	int ret=0;
++	int val=0;
++
++	ret = sscanf(buf, "%02x%02x%02x%02x", &etx_data[0], &etx_data[1], &etx_data[2], &etx_data[3]);
++	if (etx_data[0] == 0)
++	{
++		ret =  regmap_write(g_st->map, etx_data[2], etx_data[3]);
++		if (ret)
++                        dev_err(dev, "Write parsing error %d\n", ret);
++
++		msleep(10);
++	}
++	else if (etx_data[0] == 0x01)
++	{
++		read_reg = etx_data[2];
++		ret =  regmap_read(g_st->map, etx_data[2], &val);
++		if (ret)
++                        dev_err(dev, "Read parsing error %d\n", ret);
++
++	}
++	else if (etx_data[0] == 0x02)
++	{
++		if ((etx_data[1]) != 0)
++		{
++			etx_data[1] = etx_data[1]  << 12;
++			etx_data[2] = etx_data[2] | etx_data[1];
++			ret = regmap_update_bits(g_st->map, etx_data[2], INV_ICM42600_REG_MASK, etx_data[3]);
++			if (ret)
++				dev_err(dev, "Update bit parsing error %d\n", ret);
++
++			msleep(10);
++		}
++	}
++
++	etx_data[1] = 0;
++	etx_data[2] = 0;
++	etx_data[3] = 0;
++	return count;
++}
++
++static DEVICE_ATTR(register_rw, S_IRUGO | S_IWUSR,
++                   register_rw_show, register_rw_store);
++
++static struct attribute *icm42605_attrs[] = {
++        &dev_attr_register_rw.attr,
++	NULL,
++};
++
++static const struct attribute_group icm42605_attrs_group = {
++        .attrs = icm42605_attrs,
++};
++
+ static const struct iio_chan_spec inv_icm42600_accel_channels[] = {
+ 	INV_ICM42600_ACCEL_CHAN(IIO_MOD_X, INV_ICM42600_ACCEL_SCAN_X,
+ 				inv_icm42600_accel_ext_infos),
+@@ -701,6 +779,7 @@ static const struct iio_info inv_icm42600_accel_info = {
+ 	.update_scan_mode = inv_icm42600_accel_update_scan_mode,
+ 	.hwfifo_set_watermark = inv_icm42600_accel_hwfifo_set_watermark,
+ 	.hwfifo_flush_to_buffer = inv_icm42600_accel_hwfifo_flush,
++	.attrs = &icm42605_attrs_group,
+ };
+ 
+ struct iio_dev *inv_icm42600_accel_init(struct inv_icm42600_state *st)
+@@ -729,6 +808,7 @@ struct iio_dev *inv_icm42600_accel_init(struct inv_icm42600_state *st)
+ 	indio_dev->channels = inv_icm42600_accel_channels;
+ 	indio_dev->num_channels = ARRAY_SIZE(inv_icm42600_accel_channels);
+ 	indio_dev->available_scan_masks = inv_icm42600_accel_scan_masks;
++	g_st = st;
+ 
+ 	ret = devm_iio_kfifo_buffer_setup(dev, indio_dev,
+ 					  INDIO_BUFFER_SOFTWARE,
+-- 
+2.25.1
+

@@ -1,0 +1,46 @@
+From a7837090f664de83f3e7f500f18c56d1895d4a0e Mon Sep 17 00:00:00 2001
+From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Date: Fri, 8 Sep 2023 12:20:30 +0530
+Subject: [PATCH] Add support for DTB overlay
+
+Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+
+diff --git a/include/configs/imx8mm_evk.h b/include/configs/imx8mm_evk.h
+index 946454edbf..f567427ae0 100644
+--- a/include/configs/imx8mm_evk.h
++++ b/include/configs/imx8mm_evk.h
+@@ -170,8 +170,11 @@
+ 	"fdt_addr_r=0x43000000\0"			\
+ 	"fdt_addr=0x43000000\0"			\
+ 	"fdt_high=0xffffffffffffffff\0"		\
++	"fdt_resize_ov=fdt resize 8192\0" 	\
+ 	"boot_fit=no\0" \
+ 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
++	"fdt_apply_addr_ov=fdt apply 0x430c0000\0" \
++	"fdtaddr_ov=fdt addr 0x43000000\0" \
+ 	"bootm_size=0x10000000\0" \
+ 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
+ 	"mmcpart=1\0" \
+@@ -184,6 +187,8 @@
+ 		"source ${loadaddr}\0" \
+ 	"loadimage=ext4load mmc ${mmcdev}:${mmcpart} ${loadaddr} /boot/${image}\0" \
+ 	"loadfdt=ext4load mmc ${mmcdev}:${mmcpart} ${fdt_addr} /boot/${fdtfile}\0" \
++	"overlayfile=/boot/overlays.txt \0" "fdt_env_ov=ext4load mmc ${mmcdev}:${mmcpart} 0x430c0000 ${overlayfile} && env import -t 0x430c0000 ${filesize}\0" \
++       "loadfdt_ov=for overlay_file in ${fdt_overlays}; do echo Applying DTBO....; ext4load mmc ${mmcdev}:${mmcpart} 0x430c0000 /boot/${overlay_file} ; done\0"\
+ 	"loadcntr=ext4load mmc ${mmcdev}:${mmcpart} ${cntr_addr} /boot/${cntr_file}\0" \
+ 	"mmcboot=echo Booting from mmc ...; " \
+ 		"run mmcargs; " \
+@@ -192,6 +197,11 @@
+ 			"bootm ${loadaddr}; " \
+ 		"else " \
+ 			"if run loadfdt; then " \
++                                "run fdtaddr_ov;"\
++                                "run fdt_resize_ov;"\
++                                "run fdt_env_ov;" \
++                                "run loadfdt_ov;" \
++                                "run fdt_apply_addr_ov;" \
+ 				"run loadimage; " \
+ 				"booti ${loadaddr} - ${fdt_addr_r}; " \
+ 			"else " \
+-- 
+2.25.1

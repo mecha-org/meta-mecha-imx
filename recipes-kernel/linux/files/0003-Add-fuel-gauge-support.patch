@@ -8,13 +8,13 @@ Subject: [PATCH] Add fuel gauge support
 
 Signed-off-by: HardevSinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
 
-diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 index d827acdd9532..4324c0ec7ef7 100644
---- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
-+++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 @@ -7,3 +7,79 @@
  
- #include "fsl-imx8mm-demo.dts"
+ #include "imx8mm-mecha-som-gen1.dts"
  
 +&i2c2 {
 +	clock-frequency = <400000>;

@@ -34,8 +34,8 @@ do_install() {
     install -c -m 0644 ${WORKDIR}/lib-udev-rulesd/60-drm.rules ${D}/lib/udev/rules.d
 
     install -d ${D}/etc/greetd
-    install -c -m go+r ${WORKDIR}/etc-greetd/config.toml ${D}/etc/greetd
-    install -c -m go+r ${WORKDIR}/etc-greetd/sway-config ${D}/etc/greetd
+    install -c -m 0644 ${WORKDIR}/etc-greetd/config.toml ${D}/etc/greetd
+    install -c -m 0644 ${WORKDIR}/etc-greetd/sway-config ${D}/etc/greetd
 
     install -d ${D}/etc/pam.d
     install -c -m 0644 ${WORKDIR}/etc-pamd/greetd ${D}/etc/pam.d

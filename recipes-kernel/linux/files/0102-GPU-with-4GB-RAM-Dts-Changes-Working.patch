@@ -5,10 +5,10 @@ Subject: [PATCH] GPU with 4GB RAM Dts Changes Working
 
 Signed-off-by: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
 
-diff --git a/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts b/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts
 index fefabd489952..3b715a6c044b 100644
---- a/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts
-+++ b/arch/arm64/boot/dts/freescale/fsl-imx8mm-demo.dts
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-som-gen1.dts
 @@ -552,6 +552,11 @@ &vpu_h1 {
  	status = "okay";
  };
@@ -63,10 +63,10 @@ index 177efc39ddb3..1254814793a7 100755
  		assigned-clocks = <&clk IMX8MM_CLK_GPU3D_SRC>,
  				<&clk IMX8MM_CLK_GPU2D_SRC>,
  				<&clk IMX8MM_CLK_GPU_AXI>,
-diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 index 243044e7223e..24679194a759 100644
---- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
-+++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
 @@ -457,3 +457,12 @@ &pwm3 {
          status = "okay";
  };

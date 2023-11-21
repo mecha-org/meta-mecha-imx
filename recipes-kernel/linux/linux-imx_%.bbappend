@@ -13,7 +13,7 @@ SRC_URI:append = " file://0001-Add-Changes-to-enable-wifi-in-imx8mmlpd4.patch \
 	file://0010-Enabled-mikrobus-pwm.patch \
 	file://0011-Added-support-for-max98090-91-audio-codec.patch \
 	file://0012-Added-changes-related-to-display.patch \
-	file://0013-Add-Support-for-IRQ-Trigger-in-INV-ICM42600.patch \
+	file://0013-Add-icm42605-channel-to-WR-register.patch \
 	file://0014-added-support-for-multiple-sample-rate.patch \
 	file://0015-Fix-cpu-governor-issue.patch \
 	file://0016-Fix-audio-sample-rate-and-tempo-issue.patch \
@@ -23,10 +23,16 @@ SRC_URI:append = " file://0001-Add-Changes-to-enable-wifi-in-imx8mmlpd4.patch \
 	file://0020-etnaviv-enable-in-imx8mm-dtsi.patch \
 	file://0021-Resolve-GPU-issue-in-4GB-RAM-with-sway.patch \
 	file://0022-Add-fuel-guage-bq27441-calibration.patch \
+	file://0025-Update-config-of-fuel-gauge.patch \
 	"
+
+#	file://0023-Dts-Overlay-Complie-with-symbols.patch 
+#	file://0024-Compile-dtb-with-symbols-for-overlay-support.patch 
 
 #	file://0001-Working-GPU-Sway-Fix.patch 
 #	file://0002-GPU-with-4GB-RAM-Dts-Changes-Working.patch 
+
+#	file://0013-Add-Support-for-IRQ-Trigger-in-INV-ICM42600.patch
 
 
 do_configure:append () {
@@ -60,7 +66,7 @@ do_configure:append () {
 	echo "# MECHA configs " >> $config
 
 	sed -i "/CONFIG_MXC_CAMERA_OV5640_MIPI_V2[ =]/d" $config
-	echo "CONFIG_MXC_CAMERA_OV5640_MIPI_V2=y" >> $config
+	echo "CONFIG_MXC_CAMERA_OV5640_MIPI_V2=m" >> $config
 
 	sed -i "/CONFIG_GPIO_SYSFS[ =]/d" $config
 	echo "CONFIG_GPIO_SYSFS=y" >> $config
