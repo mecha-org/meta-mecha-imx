@@ -1,3 +1,12 @@
+From 33ad20b8c4cd9cb81eaf64d6b51ac6380525e0ea Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Mon, 27 Nov 2023 13:37:14 +0530
+Subject: [PATCH] Etnaviv-driver-enable-in-imx8mm-dtsi
+
+---
+ arch/arm64/boot/dts/freescale/imx8mm.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
 diff --git a/arch/arm64/boot/dts/freescale/imx8mm.dtsi b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
 index bddc4323f0c4..177efc39ddb3 100755
 --- a/arch/arm64/boot/dts/freescale/imx8mm.dtsi
@@ -20,3 +29,6 @@ index bddc4323f0c4..177efc39ddb3 100755
  			  "gpu3d_axi_clk", "gpu3d_ahb_clk",
  			  "gpu2d_clk", "gpu2d_axi_clk",
  			  "gpu2d_ahb_clk";
+-- 
+2.25.1
+

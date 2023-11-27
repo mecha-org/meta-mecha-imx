@@ -17,14 +17,14 @@ SRC_URI:append = " file://0001-Add-Changes-to-enable-wifi-in-imx8mmlpd4.patch \
 	file://0014-added-support-for-multiple-sample-rate.patch \
 	file://0015-Fix-cpu-governor-issue.patch \
 	file://0016-Fix-audio-sample-rate-and-tempo-issue.patch \
-	file://0017-change-linux-logo.patch \
-	file://0018-etnaviv-drv-c.patch \
-	file://0019-etnaviv-gpu-c.patch \
-	file://0020-etnaviv-enable-in-imx8mm-dtsi.patch \
-	file://0021-Resolve-GPU-issue-in-4GB-RAM-with-sway.patch \
-	file://0022-Add-fuel-guage-bq27441-calibration.patch \
-	file://0025-Update-config-of-fuel-gauge.patch \
+	file://0017-Change-linux-logo.patch \
+	file://0018-Etnaviv-debug-logs-etnaviv_drv-etnaviv_gpu.patch \
+	file://0019-Etnaviv-driver-enable-in-imx8mm-dtsi.patch \
+	file://0020-Resolve-GPU-issue-in-4GB-RAM-with-sway.patch \
+	file://0021-Add-fuel-guage-bq27441-calibration.patch \
 	"
+
+#  	file://0025-Update-config-of-fuel-gauge.patch 
 
 #	file://0023-Dts-Overlay-Complie-with-symbols.patch 
 #	file://0024-Compile-dtb-with-symbols-for-overlay-support.patch 
