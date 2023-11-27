@@ -1,3 +1,12 @@
+From 9b40bdbe6fc7a8e10291cc9872ea003e85e86fbf Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Mon, 27 Nov 2023 13:02:46 +0530
+Subject: [PATCH] Change-linux-logo
+
+---
+ drivers/video/logo/logo_linux_clut224.ppm | 40003 +++++++++++++++++++-
+ 1 file changed, 38401 insertions(+), 1602 deletions(-)
+
 diff --git a/drivers/video/logo/logo_linux_clut224.ppm b/drivers/video/logo/logo_linux_clut224.ppm
 index 3c14e43b82fe..9d10367278f9 100644
 --- a/drivers/video/logo/logo_linux_clut224.ppm
@@ -40008,3 +40017,6 @@ index 3c14e43b82fe..9d10367278f9 100644
 +0 0 0  0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
 +0 0 0  0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
 +0 0 0  0 0 0  0 0 0  0 0 0  0 0 0  0 0 0
+-- 
+2.25.1
+
