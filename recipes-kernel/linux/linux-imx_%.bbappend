@@ -22,6 +22,7 @@ SRC_URI:append = " file://0001-Add-Changes-to-enable-wifi-in-imx8mmlpd4.patch \
 	file://0019-Etnaviv-driver-enable-in-imx8mm-dtsi.patch \
 	file://0020-Resolve-GPU-issue-in-4GB-RAM-with-sway.patch \
 	file://0021-Add-fuel-guage-bq27441-calibration.patch \
+	file://0022-Add-imx8mm-mecha-som-gen1-ramfs-dts.patch \
 	"
 
 #  	file://0025-Update-config-of-fuel-gauge.patch 
@@ -171,7 +172,33 @@ do_configure:append () {
 	echo "CONFIG_GPIO_SYSFS=y" >> $config
 	
 	############ Default CPU Governer ##############
-	sed -i "/# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE[ =]/d" $config
+	sed -i "/CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE[ =]/d" $config
 	echo "CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y" >> $config
 
+	############ Changes for Initramfs ##############
+	echo "############ Changes for Initramfs ##########" >> $config
+
+	sed -i "/CONFIG_BLK_DEV_RAM[ =]/d" $config
+	echo "CONFIG_BLK_DEV_RAM=y" >> $config
+	echo "CONFIG_BLK_DEV_RAM_COUNT=1" >> $config
+	echo "CONFIG_BLK_DEV_RAM_SIZE=102000" >> $config
+
+	sed -i "/CONFIG_U_SERIAL_CONSOLE[ =]/d" $config
+	echo "CONFIG_U_SERIAL_CONSOLE=y" >> $config
+
+	sed -i "/CONFIG_USB_MASS_STORAGE[ =]/d" $config
+	echo "CONFIG_USB_MASS_STORAGE=y" >> $config
+
+	sed -i "/CONFIG_IMX_SDMA[ =]/d" $config
+	echo "CONFIG_IMX_SDMA=n" >> $config
 }
+
+
+
+# Changes for initramfs
+#  CONFIG_BLK_DEV_RAM=y
+#  CONFIG_BLK_DEV_RAM_COUNT=1
+#  CONFIG_BLK_DEV_RAM_SIZE=1020000
+#  CONFIG_U_SERIAL_CONSOLE=y
+#  CONFIG_USB_MASS_STORAGE=y
+#  CONFIG_IMX_SDMA not set
