@@ -145,3 +145,5 @@ LICENSE = "CLOSED"
 # what cargo-bitbake generates.
 include mecha-device-test-${PV}.inc
 include mecha-device-test.inc
+
+# mecha-device-test test -p=Config.yaml -d=mecha-v1
