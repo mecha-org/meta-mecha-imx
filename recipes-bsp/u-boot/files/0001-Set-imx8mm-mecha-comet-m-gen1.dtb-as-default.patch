@@ -1,0 +1,25 @@
+From 50258404fac34248b9a163095abcfac265f74a14 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Thu, 30 Nov 2023 17:03:43 +0530
+Subject: [PATCH] Set-imx8mm-mecha-comet-m-gen1.dtb-as-default
+
+---
+ configs/imx8mm_evk_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configs/imx8mm_evk_defconfig b/configs/imx8mm_evk_defconfig
+index 22ba879f5f..5658528fd9 100644
+--- a/configs/imx8mm_evk_defconfig
++++ b/configs/imx8mm_evk_defconfig
+@@ -94,7 +94,7 @@ CONFIG_CMD_FS_GENERIC=y
+ CONFIG_CMD_USB=y
+ CONFIG_OF_CONTROL=y
+ CONFIG_ENV_OVERWRITE=y
+-CONFIG_DEFAULT_FDT_FILE="imx8mm-evk.dtb"
++CONFIG_DEFAULT_FDT_FILE="imx8mm-mecha-comet-m-gen1.dtb"
+ CONFIG_ENV_IS_IN_MMC=y
+ CONFIG_SYS_RELOC_GD_ENV_ADDR=y
+ CONFIG_SYS_MMC_ENV_DEV=1
+-- 
+2.25.1
+

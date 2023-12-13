@@ -1,0 +1,33 @@
+[Unit]
+Description=Greeter daemon
+After=systemd-user-sessions.service plymouth-quit-wait.service
+After=getty@tty1.service
+Conflicts=getty@tty1.service
+
+# Requires=dev-dri-card0.device
+# After=dev-dri-card0.device
+# Requires=dev-dri-card1.device
+# After=dev-dri-card1.device
+
+
+# On systems without virtual consoles, don't start greetd. Note
+# that serial gettys are covered by serial-getty@.service, not this
+# unit.
+ConditionPathExists=/dev/tty0
+
+
+[Service]
+Type=simple
+ExecStart=greetd
+IgnoreSIGPIPE=no
+SendSIGHUP=yes
+TimeoutStopSec=30s
+KeyringMode=shared
+Restart=no
+RestartSec=1
+# ExecStartPre=/bin/sleep 10
+StartLimitBurst=5
+StartLimitInterval=30
+
+[Install]
+Alias=display-manager.service

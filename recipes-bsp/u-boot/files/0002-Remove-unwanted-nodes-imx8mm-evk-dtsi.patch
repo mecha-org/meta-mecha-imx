@@ -1,0 +1,34 @@
+From c417a5fb67b581aad2ba2802a6db047aa825fcb1 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Wed, 13 Dec 2023 11:46:01 +0530
+Subject: [PATCH] Remove-unwanted-nodes-imx8mm-evk-dtsi
+
+---
+ arch/arm/dts/imx8mm-evk.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/dts/imx8mm-evk.dtsi b/arch/arm/dts/imx8mm-evk.dtsi
+index 200274972f..852a306775 100644
+--- a/arch/arm/dts/imx8mm-evk.dtsi
++++ b/arch/arm/dts/imx8mm-evk.dtsi
+@@ -346,7 +346,7 @@
+ 		reg = <0x3d>;
+ 		adi,addr-cec = <0x3c>;
+ 		adi,dsi-lanes = <4>;
+-		status = "okay";
++		status = "disabled";
+ 
+ 		port {
+ 			adv7535_from_dsim: endpoint {
+@@ -501,7 +501,7 @@
+ 
+ &lcdif {
+ 	display = <&display0>;
+-	status = "okay";
++	status = "disabled";
+ 
+ 	display0: display@0 {
+ 		bits-per-pixel = <24>;
+-- 
+2.25.1
+

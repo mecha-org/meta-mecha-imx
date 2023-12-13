@@ -1,0 +1,25 @@
+From 83d2363720ae2b9aec86b062ca6415f47b2ff423 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Thu, 30 Nov 2023 12:45:46 +0530
+Subject: [PATCH] Fix-cpu-governer-issue
+
+---
+ drivers/cpufreq/cpufreq-dt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/cpufreq/cpufreq-dt.c b/drivers/cpufreq/cpufreq-dt.c
+index 4aec4b2a5225..c7ccb5d765cc 100644
+--- a/drivers/cpufreq/cpufreq-dt.c
++++ b/drivers/cpufreq/cpufreq-dt.c
+@@ -224,7 +224,7 @@ static int dt_cpufreq_early_init(struct device *dev, int cpu)
+ 		if (priv->opp_token < 0) {
+ 			ret = dev_err_probe(cpu_dev, priv->opp_token,
+ 					    "failed to set regulators\n");
+-			goto free_cpumask;
++			// goto free_cpumask;
+ 		}
+ 	}
+ 
+-- 
+2.25.1
+

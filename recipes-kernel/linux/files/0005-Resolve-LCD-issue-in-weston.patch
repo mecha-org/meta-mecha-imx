@@ -1,0 +1,27 @@
+From 8af8fda453942e2de327159532b4d436e16fbdd8 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Fri, 1 Dec 2023 14:41:36 +0530
+Subject: [PATCH] Resolve-LCD-issue-in-weston
+
+---
+ drivers/gpu/drm/bridge/sec-dsim.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/bridge/sec-dsim.c b/drivers/gpu/drm/bridge/sec-dsim.c
+index fc9ca98f6ef7..c51c1bd89571 100644
+--- a/drivers/gpu/drm/bridge/sec-dsim.c
++++ b/drivers/gpu/drm/bridge/sec-dsim.c
+@@ -882,8 +882,8 @@ static void sec_mipi_dsim_set_main_mode(struct sec_mipi_dsim *dsim)
+ 	dsim_write(dsim, mdresol, DSIM_MDRESOL);
+ 
+ 	mvporch |= MVPORCH_SET_MAINVBP(vmode->vback_porch)    |
+-		   MVPORCH_SET_STABLEVFP(vmode->vfront_porch) |
+-		   MVPORCH_SET_CMDALLOW(0x0);
++		   MVPORCH_SET_STABLEVFP(vmode->vfront_porch-15) |
++		   MVPORCH_SET_CMDALLOW(0xf);
+ 	dsim_write(dsim, mvporch, DSIM_MVPORCH);
+ 
+ 	bpp = mipi_dsi_pixel_format_to_bpp(dsim->format);
+-- 
+2.25.1
+

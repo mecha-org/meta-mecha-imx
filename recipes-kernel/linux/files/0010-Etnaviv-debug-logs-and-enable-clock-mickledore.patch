@@ -1,0 +1,205 @@
+From fca1f519d65d4024f36d3aac00e01b6369bd8fc7 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Mon, 4 Dec 2023 12:17:41 +0000
+Subject: [PATCH] Etnaviv-debug-logs-&-enable-clock-mickledore
+
+---
+ drivers/gpu/drm/etnaviv/etnaviv_drv.c | 15 ++++++++--
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.c | 42 ++++++++++++++++++++-------
+ 2 files changed, 44 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_drv.c b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+index 1d2b4fb4bcf8..cfdbac92bc2d 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_drv.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_drv.c
+@@ -579,8 +579,9 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *first_node = NULL;
+ 	struct component_match *match = NULL;
+-
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	if (!dev->platform_data) {
++		printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 		struct device_node *core_node;
+ 
+ 		for_each_compatible_node(core_node, NULL, "vivante,gc") {
+@@ -594,6 +595,7 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 						   component_compare_of, core_node);
+ 		}
+ 	} else {
++		printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 		char **names = dev->platform_data;
+ 		unsigned i;
+ 
+@@ -626,7 +628,7 @@ static int etnaviv_pdev_probe(struct platform_device *pdev)
+ 	 */
+ 	if (first_node)
+ 		of_dma_configure(&pdev->dev, first_node, true);
+-
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	return component_master_add_with_match(dev, &etnaviv_master_ops, match);
+ }
+ 
+@@ -655,14 +657,17 @@ static int __init etnaviv_init(void)
+ 
+ 	etnaviv_validate_init();
+ 
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	ret = platform_driver_register(&etnaviv_gpu_driver);
+ 	if (ret != 0)
+ 		return ret;
+ 
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	ret = platform_driver_register(&etnaviv_platform_driver);
+ 	if (ret != 0)
+ 		goto unregister_gpu_driver;
+ 
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	/*
+ 	 * If the DT contains at least one available GPU device, instantiate
+ 	 * the DRM platform device.
+@@ -673,6 +678,7 @@ static int __init etnaviv_init(void)
+ 
+ 		pdev = platform_device_alloc("etnaviv", PLATFORM_DEVID_NONE);
+ 		if (!pdev) {
++			printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 			ret = -ENOMEM;
+ 			of_node_put(np);
+ 			goto unregister_platform_driver;
+@@ -680,6 +686,7 @@ static int __init etnaviv_init(void)
+ 
+ 		ret = platform_device_add(pdev);
+ 		if (ret) {
++			printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 			platform_device_put(pdev);
+ 			of_node_put(np);
+ 			goto unregister_platform_driver;
+@@ -689,12 +696,14 @@ static int __init etnaviv_init(void)
+ 		of_node_put(np);
+ 		break;
+ 	}
+-
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	return 0;
+ 
+ unregister_platform_driver:
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	platform_driver_unregister(&etnaviv_platform_driver);
+ unregister_gpu_driver:
++	printk("EDEBUG: %s-%d\n",__func__,__LINE__);
+ 	platform_driver_unregister(&etnaviv_gpu_driver);
+ 	return ret;
+ }
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c b/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+index f667e7906d1f..3a8d4df96850 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+@@ -166,6 +166,7 @@ int etnaviv_gpu_get_param(struct etnaviv_gpu *gpu, u32 param, u64 *value)
+ 
+ 	default:
+ 		DBG("%s: invalid param: %u", dev_name(gpu->dev), param);
++		printk("%s: invalid param: %u", dev_name(gpu->dev), param);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1739,6 +1740,7 @@ static void etnaviv_gpu_unbind(struct device *dev, struct device *master,
+ 	struct etnaviv_gpu *gpu = dev_get_drvdata(dev);
+ 
+ 	DBG("%s", dev_name(gpu->dev));
++	printk("%s", dev_name(gpu->dev));
+ 
+ 	destroy_workqueue(gpu->wq);
+ 
+@@ -1795,10 +1797,14 @@ static int etnaviv_gpu_platform_probe(struct platform_device *pdev)
+ 	mutex_init(&gpu->lock);
+ 	mutex_init(&gpu->fence_lock);
+ 
++	printk("EDEBUG: %d-%s\n",__LINE__,__func__);
++
+ 	/* Map registers: */
+ 	gpu->mmio = devm_platform_ioremap_resource(pdev, 0);
+-	if (IS_ERR(gpu->mmio))
++	if (IS_ERR(gpu->mmio)) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		return PTR_ERR(gpu->mmio);
++	}
+ 
+ 	/* Get Interrupt: */
+ 	gpu->irq = platform_get_irq(pdev, 0);
+@@ -1808,31 +1814,42 @@ static int etnaviv_gpu_platform_probe(struct platform_device *pdev)
+ 	err = devm_request_irq(&pdev->dev, gpu->irq, irq_handler, 0,
+ 			       dev_name(gpu->dev), gpu);
+ 	if (err) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		dev_err(dev, "failed to request IRQ%u: %d\n", gpu->irq, err);
+ 		return err;
+ 	}
+ 
+ 	/* Get Clocks: */
+ 	gpu->clk_reg = devm_clk_get_optional(&pdev->dev, "reg");
+-	DBG("clk_reg: %p", gpu->clk_reg);
+-	if (IS_ERR(gpu->clk_reg))
++	printk("clk_reg: %p", gpu->clk_reg);
++	if (IS_ERR(gpu->clk_reg)) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		return PTR_ERR(gpu->clk_reg);
++	}
+ 
+ 	gpu->clk_bus = devm_clk_get_optional(&pdev->dev, "bus");
+-	DBG("clk_bus: %p", gpu->clk_bus);
+-	if (IS_ERR(gpu->clk_bus))
++	printk("clk_bus: %p", gpu->clk_bus);
++	if (IS_ERR(gpu->clk_bus)) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		return PTR_ERR(gpu->clk_bus);
++	}
+ 
+ 	gpu->clk_core = devm_clk_get(&pdev->dev, "core");
+-	DBG("clk_core: %p", gpu->clk_core);
+-	if (IS_ERR(gpu->clk_core))
++	printk("clk_core: %p", gpu->clk_core);
++	if (IS_ERR(gpu->clk_core)) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		return PTR_ERR(gpu->clk_core);
++	}
++
+ 	gpu->base_rate_core = clk_get_rate(gpu->clk_core);
+ 
+ 	gpu->clk_shader = devm_clk_get_optional(&pdev->dev, "shader");
+-	DBG("clk_shader: %p", gpu->clk_shader);
+-	if (IS_ERR(gpu->clk_shader))
++	printk("clk_core: %p", gpu->clk_core);
++	if (IS_ERR(gpu->clk_core)) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		return PTR_ERR(gpu->clk_shader);
++	}
++
+ 	gpu->base_rate_shader = clk_get_rate(gpu->clk_shader);
+ 
+ 	/* TODO: figure out max mapped size */
+@@ -1843,16 +1860,21 @@ static int etnaviv_gpu_platform_probe(struct platform_device *pdev)
+ 	 * autosuspend delay is rather arbitary: no measurements have
+ 	 * yet been performed to determine an appropriate value.
+ 	 */
++	printk("EDEBUG: %d-%s\n",__LINE__,__func__);
++
+ 	pm_runtime_use_autosuspend(gpu->dev);
+ 	pm_runtime_set_autosuspend_delay(gpu->dev, 200);
+ 	pm_runtime_enable(gpu->dev);
+ 
++	printk("EDEBUG: %d-%s\n",__LINE__,__func__);
++
+ 	err = component_add(&pdev->dev, &gpu_ops);
+ 	if (err < 0) {
++		printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 		dev_err(&pdev->dev, "failed to register component: %d\n", err);
+ 		return err;
+ 	}
+-
++	printk("EDEBUG: %d-%s\n",__LINE__,__func__);
+ 	return 0;
+ }
+ 
+-- 
+2.35.4
+

@@ -1,0 +1,48 @@
+From 53a7ccb6117557a7dc2fe01038490977f5dcb6eb Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Thu, 30 Nov 2023 17:24:34 +0530
+Subject: [PATCH] Add-Support-for-4GB-DRAM-mickledore
+
+---
+ configs/imx8mm_evk_defconfig | 1 +
+ include/configs/imx8mm_evk.h | 9 +++++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/configs/imx8mm_evk_defconfig b/configs/imx8mm_evk_defconfig
+index 241c0ac5cc..eec5c89f44 100644
+--- a/configs/imx8mm_evk_defconfig
++++ b/configs/imx8mm_evk_defconfig
+@@ -231,3 +231,4 @@ CONFIG_EFI_HAVE_CAPSULE_UPDATE=y
+ CONFIG_FIT_SIGNATURE=y
+ CONFIG_DM_RNG=y
+ CONFIG_KASLR=y
++CONFIG_IMX8M_4G_LPDDR4=y
+\ No newline at end of file
+diff --git a/include/configs/imx8mm_evk.h b/include/configs/imx8mm_evk.h
+index f4a9f0b833..2b7e842f35 100644
+--- a/include/configs/imx8mm_evk.h
++++ b/include/configs/imx8mm_evk.h
+@@ -175,6 +175,7 @@
+ #define CFG_SYS_SDRAM_BASE           0x40000000
+ #define PHYS_SDRAM                      0x40000000
+ #define PHYS_SDRAM_SIZE			0x80000000 /* 2GB DDR */
++#define PHYS_SDRAM_SIZE			SZ_4G /* 4GB DDR */
+ 
+ #define CFG_FEC_MXC_PHYADDR          0
+ 
+@@ -198,3 +199,11 @@
+ #endif
+ 
+ #endif
++
++#define CONFIG_NR_DRAM_BANKS 3
++#ifdef CONFIG_IMX8M_4G_LPDDR4
++#undef PHYS_SDRAM_SIZE
++#define PHYS_SDRAM_SIZE          0xC0000000 /* 3GB */
++#define PHYS_SDRAM_2             0x100000000
++#define PHYS_SDRAM_2_SIZE        0x40000000 /* 1GB */
++#endif
+\ No newline at end of file
+-- 
+2.25.1
+

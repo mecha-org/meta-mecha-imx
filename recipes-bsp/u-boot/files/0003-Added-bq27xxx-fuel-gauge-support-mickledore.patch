@@ -1,0 +1,1050 @@
+From 6256ff0913e531571524305770f02b60228f3ee2 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Wed, 13 Dec 2023 12:56:27 +0530
+Subject: [PATCH] Added-bq27xxx-fuel-gauge-support-mickledore
+
+---
+ board/freescale/imx8mm_evk/imx8mm_evk.c |  31 ++
+ drivers/power/Kconfig                   |   2 +
+ drivers/power/Makefile                  |   1 +
+ drivers/power/fuel_gauge/Kconfig        |  10 +
+ drivers/power/fuel_gauge/Makefile       |   7 +
+ drivers/power/fuel_gauge/fg_bq27xxx.c   | 504 ++++++++++++++++++++++++
+ drivers/power/fuel_gauge/fg_max17042.c  | 287 ++++++++++++++
+ include/power/bq27xxx_fg.h              | 107 +++++
+ 8 files changed, 949 insertions(+)
+ create mode 100644 drivers/power/fuel_gauge/Kconfig
+ create mode 100644 drivers/power/fuel_gauge/Makefile
+ create mode 100644 drivers/power/fuel_gauge/fg_bq27xxx.c
+ create mode 100644 drivers/power/fuel_gauge/fg_max17042.c
+ create mode 100644 include/power/bq27xxx_fg.h
+
+diff --git a/board/freescale/imx8mm_evk/imx8mm_evk.c b/board/freescale/imx8mm_evk/imx8mm_evk.c
+index 2e9e91cd78..a4a546c667 100644
+--- a/board/freescale/imx8mm_evk/imx8mm_evk.c
++++ b/board/freescale/imx8mm_evk/imx8mm_evk.c
+@@ -20,6 +20,7 @@
+ #include <asm/io.h>
+ #include "../common/tcpc.h"
+ #include <usb.h>
++#include <power/bq27xxx_fg.h>
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
+@@ -141,6 +142,35 @@ int board_phy_config(struct phy_device *phydev)
+ struct tcpc_port port1;
+ struct tcpc_port port2;
+ 
++int power_fg_i2c_init_update(uint8_t i2c_bus, uint8_t addr)
++{
++	struct udevice *i2c_dev;
++	struct udevice *bus;
++	int ret;
++	uint8_t valb;
++
++	ret = uclass_get_device_by_seq(UCLASS_I2C, i2c_bus, &bus);
++	if (ret) {
++		printf("%s: Can't find bus\n", __func__);
++		return -EINVAL;
++	}
++
++	ret = dm_i2c_probe(bus, addr, 0, &i2c_dev);
++	if (ret) {
++		printf("%s: Can't find device id=0x%x\n",
++			__func__, addr);
++		return -ENODEV;
++	}
++
++ 	if(i2c_dev == NULL) {
++		printf("Err:i2c bus handler not found\n");
++		return -ENODEV;
++	}
++	power_fg_init_update(i2c_bus, i2c_dev);
++
++	return 0;
++}
++
+ static int setup_pd_switch(uint8_t i2c_bus, uint8_t addr)
+ {
+ 	struct udevice *bus;
+@@ -329,6 +359,7 @@ int board_late_init(void)
+ 	board_late_mmc_env_init();
+ #endif
+ 
++	power_fg_i2c_init_update(2, 0x55);
+ 	if (IS_ENABLED(CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG)) {
+ 		env_set("board_name", "EVK");
+ 		env_set("board_rev", "iMX8MM");
+diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+index 7f3b990d23..d4adf0cd08 100644
+--- a/drivers/power/Kconfig
++++ b/drivers/power/Kconfig
+@@ -51,6 +51,8 @@ source "drivers/power/pmic/Kconfig"
+ 
+ source "drivers/power/regulator/Kconfig"
+ 
++source "drivers/power/fuel_gauge/Kconfig"
++
+ choice
+ 	prompt "Select Sunxi PMIC Variant"
+ 	depends on ARCH_SUNXI
+diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+index ba64b2c593..440d2240e8 100644
+--- a/drivers/power/Makefile
++++ b/drivers/power/Makefile
+@@ -7,6 +7,7 @@ obj-$(CONFIG_$(SPL_TPL_)ACPI_PMC) += acpi_pmc/
+ obj-$(CONFIG_$(SPL_TPL_)POWER_DOMAIN) += domain/
+ obj-y += pmic/
+ obj-y += regulator/
++obj-y += fuel_gauge/
+ 
+ obj-$(CONFIG_AXP152_POWER)	+= axp152.o
+ obj-$(CONFIG_AXP209_POWER)	+= axp209.o
+diff --git a/drivers/power/fuel_gauge/Kconfig b/drivers/power/fuel_gauge/Kconfig
+new file mode 100644
+index 0000000000..ca04a65286
+--- /dev/null
++++ b/drivers/power/fuel_gauge/Kconfig
+@@ -0,0 +1,10 @@
++menu "fuel gauge support"
++
++config BQ27XXX
++        bool "Enable bq27xxx drivers"
++        #depends on DM_I2C 
++	default y 
++        help
++           enable bq27xxx fuel gauge driver.
++
++endmenu
+diff --git a/drivers/power/fuel_gauge/Makefile b/drivers/power/fuel_gauge/Makefile
+new file mode 100644
+index 0000000000..c11d6f8ef3
+--- /dev/null
++++ b/drivers/power/fuel_gauge/Makefile
+@@ -0,0 +1,7 @@
++# SPDX-License-Identifier: GPL-2.0+
++#
++# Copyright (C) 2012 Samsung Electronics
++# Lukasz Majewski <l.majewski@samsung.com>
++
++obj-$(CONFIG_POWER_FG_MAX17042) += fg_max17042.o
++obj-$(CONFIG_BQ27XXX) += fg_bq27xxx.o
+diff --git a/drivers/power/fuel_gauge/fg_bq27xxx.c b/drivers/power/fuel_gauge/fg_bq27xxx.c
+new file mode 100644
+index 0000000000..58a2472403
+--- /dev/null
++++ b/drivers/power/fuel_gauge/fg_bq27xxx.c
+@@ -0,0 +1,504 @@
++/* Author : Silicon Signals
++*/
++
++#include <common.h>
++#include <errno.h>
++#include <power/bq27xxx_fg.h>
++#include <i2c.h>
++
++#define CONFIG_ENABLE 0
++
++BQ27xxx_device defualt_battery_config = {
++	.design_capacity	= 2000, /*mAh*/
++	.design_energy		= 7600,	/*design Capacity * 3.8f for G1B*/
++	.taper_rate		= 200,	/*mA*/
++	.terminate_voltage	= 3200,	/*mV*/
++	.wait_time		= 10	/*mSec*/
++
++};
++
++struct udevice *fg_i2c_dev = NULL;
++
++static inline int BQ27xxx_write(uint8_t fg_reg_add, uint16_t fg_reg_wr_ctrl_cmd, uint8_t len) {
++
++	int retval = 0;
++
++	uchar fg_ctrl_cmd[2] = {(fg_reg_wr_ctrl_cmd & 0xff), (fg_reg_wr_ctrl_cmd >> 8)};
++	retval = dm_i2c_write(fg_i2c_dev, fg_reg_add, (const uchar *)&fg_ctrl_cmd, len);
++	
++	if(retval) 
++	{
++		printf(":: FG :: Error -> dm_i2c_write failed @ 0x%04x! %d\n", fg_reg_wr_ctrl_cmd, retval);
++		return retval;
++	}
++	mdelay(50);
++	return 0;
++}
++
++/*BQ27XX_readWord()  :Follow the "Standard Commands" to read battery information
++ * i.e.  >> Voltage() @ 0x04 
++ *	    fg_reg_add	= 0x04
++ *          len 	= 2 
++ *	    *fg_data	= pass the address of variable
++ *	    return 0 on sucess and -1 on fail
++ *       >> Temperature() @ 0x02 
++ * more details check : https://github.com/sparkfun/SparkFun_BQ27441_Arduino_Library/blob/master/src/BQ27441_Definitions.h
++ */
++static inline int BQ27xxx_readWord(uint8_t fg_reg_add, uint8_t len){
++
++	int ret = 0;
++	uchar fg_buf_data[2] = {0, 0};
++
++	ret =  dm_i2c_read(fg_i2c_dev, fg_reg_add, (const uchar *)&fg_buf_data, len);
++	if(ret < 0){		
++		return ret;
++	}
++	mdelay(50);
++	return (((uint16_t)fg_buf_data[1] << 8) | fg_buf_data[0]);
++}
++
++static inline int BQ27xxx_readControlWord(uint16_t ctrl_cmd) {
++
++	int retval = 0;
++	uchar fg_ctrl_cmd[2] = {(ctrl_cmd & 0xff), (ctrl_cmd >> 8)};
++	uchar fg_data[2] = {0, 0};
++
++	// Write Control Command of 2 Bytes @ 0x00 Address
++	retval = dm_i2c_write(fg_i2c_dev, 0x00, (const uchar *)&fg_ctrl_cmd, 2); //Write Word
++	mdelay(50);
++	if(retval <0){
++		return retval;
++	}
++
++	// read 2 bytes of data
++	retval =  dm_i2c_read(fg_i2c_dev, 0x00, (const uchar *)&fg_data, 2);
++	if(retval <0){
++		return retval;
++	}
++	mdelay(50);	
++	return ((uint16_t)fg_data[1] << 8) | fg_data[0];
++}
++
++static inline int BQ27xxx_extended_write_byte_word(u8 dataClassID, u8 offset, u16 data, u8 len){
++
++	int ret = 0;
++	u8 old_checksum = 0;
++	u8 new_checksum = 0;
++	u8 temp_checksum = 0;
++	u8 read_checksum = 0;
++	u8 dataBlock = offset / 32;
++
++	uchar fg_buf[2] = {0,0};
++	uchar fg_data[2] = {(data>>8), (data & 0xff)};
++
++	// Set Data Class
++	ret = BQ27xxx_write(BQ27xxx_DATA_CLASS, dataClassID, 1);
++	if(ret <0)
++		return ret;
++	mdelay(20);
++	// Set Data Block
++	ret = BQ27xxx_write(BQ27xxx_DATA_BLOCK, dataBlock, 1);
++	if(ret <0)
++		return ret;
++	mdelay(20);
++	// Get Old Checksum
++	ret = dm_i2c_read(fg_i2c_dev, BQ27xxx_BLOCK_DATA_CHECKSUM, (const uchar *)&fg_buf, 1); 
++	if(ret <0)
++		return ret;
++	old_checksum = fg_buf[0] & 0xff;
++
++	// Get Old Data
++	ret = dm_i2c_read(fg_i2c_dev, BQ27xxx_DATA + offset % 32, (const uchar *)&fg_buf, 2); 
++	if(ret <0)
++		return ret;
++
++	// Send New Data
++	ret = dm_i2c_write(fg_i2c_dev, BQ27xxx_DATA + offset % 32, (const uchar *)&fg_data, 2);
++	if(ret <0)
++		return ret;
++	mdelay(20);
++	// Compute Checksum
++	temp_checksum = (255 - old_checksum - fg_buf[0] - fg_buf[1]) % 256;
++	new_checksum  =  255 - ((temp_checksum + fg_data[0] + fg_data[1]) % 256);
++	new_checksum &= 0xFF;
++
++	// Send New Checksum
++	ret = BQ27xxx_write(BQ27xxx_BLOCK_DATA_CHECKSUM, new_checksum, 1);
++	if(ret <0)
++		return ret;
++	mdelay(20);
++	// **** Re-verification for write succesfull ****
++	// Set Data Class
++	ret = BQ27xxx_write(BQ27xxx_DATA_CLASS, dataClassID, 1);
++	if(ret <0)
++		return ret;
++
++	// Set Data Block
++	ret = BQ27xxx_write(BQ27xxx_DATA_BLOCK, dataBlock, 1);
++	if(ret <0)
++		return ret;
++
++	// Get  Checksum
++	 fg_buf[0] = fg_buf[1] =0;
++	ret = dm_i2c_read(fg_i2c_dev, BQ27xxx_BLOCK_DATA_CHECKSUM, (const uchar *)&fg_buf, 1);
++	if(ret <0)
++		return ret;
++	read_checksum = fg_buf[0] & 0xff;
++
++	if(read_checksum != new_checksum){
++		printf(":: FG :: Fail to update parameter --> %d\n", data);
++	}
++
++	return 0;
++}
++
++static inline int config_mode_start(void){
++	int ret;
++	int control_status;
++	int flags_lsb;
++	int itpor;
++	uint16_t timeout;	
++
++	/*config mode check*/
++	ret = BQ27xxx_readWord(BQ27xxx_FLAGS,2);
++	if(ret < 0)
++		return ret;	
++
++	itpor = ret & BQ27xxx_FLAGS_ITPOR;	
++	
++	if(itpor ==0){
++		printf(":: FG :: No need to update config parameters \n");
++		return -1;
++	}
++
++	flags_lsb = (ret & 0xff);
++
++	if(flags_lsb & BQ27xxx_FLAGS_CFGUPMODE) {
++		printf(":: FG :: Already in config mode\n");
++		return 0;
++	}
++
++	// unseal the fg for data access if needed
++	ret = BQ27xxx_readControlWord(BQ27xxx_CONTROL_STATUS);
++	if(ret <0)
++		return ret;
++
++	control_status = ret;
++
++	if(control_status & BQ27xxx_STATUS_SS){
++		ret = BQ27xxx_write(BQ27xxx_CONTROL, BQ27xxx_UNSEAL_KEY, 2);
++		if(ret <0)
++			return ret;
++		ret = BQ27xxx_write(BQ27xxx_CONTROL, BQ27xxx_UNSEAL_KEY, 2);
++		if(ret <0)
++			return ret;	
++	}
++	else{
++		printf(":: FG :: Already unsealed\n");
++	}
++	mdelay(20);
++
++	ret = BQ27xxx_readControlWord(BQ27xxx_CONTROL_STATUS);
++	if(ret <0)
++		return ret;
++
++	// set fuel gauge in configmode
++	ret = BQ27xxx_write(BQ27xxx_CONTROL, BQ27xxx_SET_CFGUPDATE, 2);
++	if(ret <0){
++		return ret;
++	}
++
++	// wait for config mode set
++	timeout = 50; flags_lsb = 0;
++	while(!flags_lsb)
++	{
++		ret = BQ27xxx_readWord(BQ27xxx_FLAGS,2);
++		if(ret <0)
++			return ret;
++
++		flags_lsb = (ret & BQ27xxx_FLAGS_CFGUPMODE);
++
++		if(timeout)
++		{
++			timeout--; mdelay(100);
++		}	
++		else
++		{
++			printf(":: FG :: Unable to enable CFGUPDATE mode\n");
++			return -1; //Timeout Occure
++		}
++	}
++
++	// Enable Block Mode
++	ret = BQ27xxx_write(BQ27xxx_CONTROL, 0x00, 1);
++	if(ret <0){
++		printf(":: FG :: Unable to enable block mode, ret %d\n", ret);
++		return ret;
++	}
++
++	return 0;	
++}
++
++static inline int config_mode_stop(void){
++	int ret;
++	int flags_lsb;
++	uint16_t timeout;
++
++	ret = BQ27xxx_readWord(BQ27xxx_FLAGS,2);
++	if(ret <0)
++		return ret;
++
++	if(ret & BQ27xxx_FLAGS_CFGUPMODE){
++
++		ret = BQ27xxx_write(BQ27xxx_CONTROL, BQ27xxx_SOFT_RESET, 2);
++		if(ret <0)
++			return ret;
++
++		// Wait for config mode to exit
++		flags_lsb = BQ27xxx_FLAGS_CFGUPMODE;
++		timeout = 5;
++		while(flags_lsb){
++			ret = BQ27xxx_readWord(BQ27xxx_FLAGS,2);
++			if(ret <0)
++				return ret;
++
++			flags_lsb = (ret & BQ27xxx_FLAGS_CFGUPMODE);
++			if(timeout){
++				timeout--; mdelay(1000);
++			}else{
++				return -1; flags_lsb =0;
++			}
++		}		
++	}
++
++	// seal the fuel gauge
++	ret = BQ27xxx_write(BQ27xxx_CONTROL, BQ27xxx_SEALED_KEY, 2);
++	if(ret <0)
++		return ret;
++
++	return 0;
++}
++
++static inline int is_fg_available(void){
++	int ret=0; 
++	
++	ret = BQ27xxx_readWord(BQ27xxx_FLAGS,2);
++	if(ret <0){
++		printf(":: FG :: Enable to read BQ27441_FLAGS\n");
++		return ret;
++	}
++	
++	return ret;	
++}
++
++static inline int configure(BQ27xxx_device *bat){
++
++	int ret;
++
++	ret = is_fg_available();
++	if(ret <0){
++		printf(":: FG :: Failed to initialize\n");
++		return ret;
++	}
++	
++	ret = config_mode_start();	
++	if(ret < 0){		
++		printf(":: FG :: Fail to enter config mode \n");
++		return ret;
++	}
++
++	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_DCAP, bat->design_capacity, 2);
++	if(ret <0){		
++		printf(":: FG :: Fail to set DESIGN CAPACITY \n");
++		return ret;
++	}
++
++	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_DESIGN_ENERGY, bat->design_energy, 2);
++	if(ret <0){
++		printf(":: FG :: Fail to set DESIGN ENERGY \n");
++		return ret;
++	}
++
++	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_TERMINATE_VOLTAGE, bat->terminate_voltage, 2);
++	if(ret <0){
++		printf(":: FG :: Fail to set TERMINATE VOLTAGE \n");
++		return ret;	
++	}
++
++	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_TAPER_RATE, bat->taper_rate, 2);
++	if(ret <0){
++		printf(":: FG :: Fail to set TAPER RATE \n");
++		return ret;
++	}
++
++	ret = config_mode_stop();
++	if(ret <0)
++		printf(":: FG :: Fail to exit config mode \n");
++
++	return 0;	
++}
++
++static inline int battery_crnt_n_status(int *pCurrentData, u8 *pBatStatus, u8 *pBatLevel, int status_flags){
++
++	int bitCheck =0;
++
++	/*sign value conversion*/	
++	if(pCurrentData != NULL)
++		*pCurrentData = (int)((s16)(*pCurrentData)); // * 1000; //uA
++	
++	bitCheck = (status_flags & BQ27XXX_FLAG_FC);
++	/*battery status*/
++	if(pBatStatus != NULL) {
++
++		if(*pCurrentData >0)
++			*pBatStatus = POWER_SUPPLY_STATUS_CHARGING;
++		else if(*pCurrentData <0)		
++			*pBatStatus = POWER_SUPPLY_STATUS_DISCHARGING;
++		else {
++			if(bitCheck){
++				*pBatStatus = POWER_SUPPLY_STATUS_FULL;
++			}
++			else{
++				*pBatStatus = POWER_SUPPLY_STATUS_NOT_CHARGING;
++			}
++		}
++	}
++
++	/*battery level*/
++	if(pBatLevel != NULL) {
++		if(status_flags & BQ27XXX_FLAG_FC)
++			*pBatLevel = POWER_SUPPLY_CAPACITY_LEVEL_FULL;
++		else if(status_flags & BQ27XXX_FLAG_SOC1)
++			*pBatLevel = POWER_SUPPLY_CAPACITY_LEVEL_LOW;
++		else if(status_flags & BQ27XXX_FLAG_SOCF)
++			*pBatLevel = POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL;
++		else
++			*pBatLevel = POWER_SUPPLY_CAPACITY_LEVEL_NORMAL;
++	}
++
++	return 0;
++
++}
++
++ int power_read_battery_property(bq27xxx_battery *bat) {
++
++	int ret;
++	int is_battery_connect =-1;
++	int flags =0;
++	int curr=0;
++	u8 bat_status=0;
++	u8 bat_level =0;
++
++
++	ret= BQ27xxx_readControlWord(BQ27xxx_DEVICE_TYPE);
++	if(ret <0)
++		return ret;
++	bat->chip_id = ret;
++
++
++	ret= BQ27xxx_readWord(BQ27xxx_FLAGS, 2);
++	if(ret <0)
++		return ret;
++	
++	is_battery_connect = (is_battery_connect & BQ27XXX_FLAG_BAT_DET);
++	if(is_battery_connect ==0)
++		return -1;
++
++	flags =ret;
++	bat->flags =flags;
++
++	ret= BQ27xxx_readWord(BQ27xxx_DESIGN_CAPACITY, 2);	
++	if(ret <0)
++		ret =0;
++	bat->d_cap = ret;
++
++
++	ret= BQ27xxx_readWord(BQ27xxx_STATE_OF_CHARGE, 2);
++	if(ret <0)
++		ret =0;
++	bat->soc = ret;
++
++	ret= BQ27xxx_readWord(BQ27xxx_VOLTAGE_NOW, 2);
++	if(ret <0)
++		ret =0;
++	bat->volt_now = ret;
++
++	ret= BQ27xxx_readWord(BQ27xxx_FULL_CHARGE_CAPACITY, 2);
++	if(ret <0)
++		ret =0;
++	bat->full_charge_capacity =ret;
++
++	ret= BQ27xxx_readWord(BQ27xxx_NOMINAL_AVG_CURRENT , 2);
++	if(ret <0)
++		ret =0;
++	bat->nominal_available_capacity =ret;
++
++	ret = BQ27xxx_readWord(BQ27xxx_AVERAGE_CURRENT, 2);
++	if(ret <0)
++		ret =0;
++	curr =ret;
++	printk("Current Now : %d\n",curr);
++	if(flags){
++		battery_crnt_n_status(&curr, &bat_status, &bat_level, flags);
++
++		bat->current_now	= curr;
++		bat->supply_status	= bat_status;
++		bat->capacity_level	= bat_level;
++	}
++
++	return 0;
++}
++
++int power_fg_init_update(unsigned char bus, struct udevice *i2c_dev)
++{
++	BQ27xxx_device  bat_config;
++	bq27xxx_battery bat_crnt_status;
++	fg_i2c_dev = i2c_dev;
++
++	// Reset data of battery data structure 
++	memset(&bat_crnt_status, 0, sizeof(bat_crnt_status));
++
++	// copy default battery config parameter
++	memcpy(&bat_config, &defualt_battery_config, sizeof(bq27xxx_battery));
++
++	/*update & write battery parameters to fuel gauge*/
++	configure(&bat_config);
++
++	if (power_read_battery_property(&bat_crnt_status) < 0) {
++		printf(":: FG :: FUEL GAUGE NOT CONNECTED \n");
++		return -ENODEV;
++	}
++	printf("################################# DATA FROM DRIVER ####################################\n");
++	printf(":: FG :: FUEL GAUGE CHIP ID      	>> 0x%04x \n", bat_crnt_status.chip_id);
++	printf(":: FG :: BATTERY DESIGN CAPACITY 	>> %d mAh \n", bat_crnt_status.d_cap);
++	printf(":: FG :: BATTERY STATE OF CHAREG 	>> %d %%  \n", bat_crnt_status.soc);
++	printf(":: FG :: BATTERY VOLTAGE NOW	 	>> %d mV  \n", bat_crnt_status.volt_now);
++	printf(":: FG :: BATTERY CURRENT NOW     	>> %d mA  \n", bat_crnt_status.current_now);	
++	printf(":: FG :: BATTERY FULL CHARGE CAP 	>> %d mAh \n", bat_crnt_status.full_charge_capacity);	
++	printf(":: FG :: BATTERY NOMINAL AVAILABLE CAP	>> %d mAh \n", bat_crnt_status.nominal_available_capacity);
++	printf(":: FG :: Flags				>> 0x%04x \n", bat_crnt_status.flags);	
++
++	printf(":: FG :: POWER_SUPPLY_STATUS		>> ");
++	switch(bat_crnt_status.supply_status)
++	{
++		case POWER_SUPPLY_STATUS_CHARGING    : printf(" CHARGING\n");		break;
++		case POWER_SUPPLY_STATUS_DISCHARGING : printf(" DISCHARGING\n");       break;
++		case POWER_SUPPLY_STATUS_FULL	     : printf(" FULL\n");       	break;
++		case POWER_SUPPLY_STATUS_NOT_CHARGING: printf(" NOT_CHARGING\n");      break;
++		default: printf(" NO_BATTERY\n"); 	break;
++	}
++	
++	printf(":: FG :: POWER_SUPPLY_CAPACITY_LEVEL    >> ");
++	switch(bat_crnt_status.capacity_level)
++        {
++               case POWER_SUPPLY_CAPACITY_LEVEL_FULL    : printf(" FULL\n");           break;
++               case POWER_SUPPLY_CAPACITY_LEVEL_LOW	: printf(" LOW\n");       break;
++               case POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL: printf(" CRITICAL\n");               break;
++               case POWER_SUPPLY_CAPACITY_LEVEL_NORMAL  : printf(" NORMAL\n");      break;
++               default: printf(" NO_BATTERY\n");       break;
++        }
++	printf("############################### END DATA FROM DRIVER ####################################\n");
++
++	return 0;
++}
++
+diff --git a/drivers/power/fuel_gauge/fg_max17042.c b/drivers/power/fuel_gauge/fg_max17042.c
+new file mode 100644
+index 0000000000..a395d587a8
+--- /dev/null
++++ b/drivers/power/fuel_gauge/fg_max17042.c
+@@ -0,0 +1,287 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ *  Copyright (C) 2012 Samsung Electronics
++ *  Lukasz Majewski <l.majewski@samsung.com>
++ */
++
++#include <common.h>
++#include <log.h>
++#include <linux/delay.h>
++#include <power/pmic.h>
++#include <power/max17042_fg.h>
++#include <i2c.h>
++#include <power/max8997_pmic.h>
++#include <power/power_chrg.h>
++#include <power/battery.h>
++#include <power/fg_battery_cell_params.h>
++#include <errno.h>
++
++static int fg_write_regs(struct pmic *p, u8 addr, u16 *data, int num)
++{
++	int ret = 0;
++	int i;
++
++	for (i = 0; i < num; i++, addr++) {
++		ret = pmic_reg_write(p, addr, *(data + i));
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int fg_read_regs(struct pmic *p, u8 addr, u16 *data, int num)
++{
++	unsigned int dat;
++	int ret = 0;
++	int i;
++
++	for (i = 0; i < num; i++, addr++) {
++		ret = pmic_reg_read(p, addr, &dat);
++		if (ret)
++			return ret;
++
++		*(data + i) = (u16)dat;
++	}
++
++	return 0;
++}
++
++static int fg_write_and_verify(struct pmic *p, u8 addr, u16 data)
++{
++	unsigned int val = data;
++	int ret = 0;
++
++	ret |= pmic_reg_write(p, addr, val);
++	ret |= pmic_reg_read(p, addr, &val);
++
++	if (ret)
++		return ret;
++
++	if (((u16) val) == data)
++		return 0;
++
++	return -1;
++}
++
++static void por_fuelgauge_init(struct pmic *p)
++{
++	u16 r_data0[16], r_data1[16], r_data2[16];
++	u32 rewrite_count = 5;
++	u32 check_count;
++	u32 lock_count;
++	u32 i = 0;
++	u32 val;
++	s32 ret = 0;
++	char *status_msg;
++
++	/* Delay 500 ms */
++	mdelay(500);
++	/* Initilize Configuration */
++	pmic_reg_write(p, MAX17042_CONFIG, 0x2310);
++
++rewrite_model:
++	check_count = 5;
++	lock_count = 5;
++
++	if (!rewrite_count--) {
++		status_msg = "init failed!";
++		goto error;
++	}
++
++	/* Unlock Model Access */
++	pmic_reg_write(p, MAX17042_MLOCKReg1, MODEL_UNLOCK1);
++	pmic_reg_write(p, MAX17042_MLOCKReg2, MODEL_UNLOCK2);
++
++	/* Write/Read/Verify the Custom Model */
++	ret = fg_write_regs(p, MAX17042_MODEL1, cell_character0,
++			     ARRAY_SIZE(cell_character0));
++	if (ret)
++		goto rewrite_model;
++
++	ret = fg_write_regs(p, MAX17042_MODEL2, cell_character1,
++			     ARRAY_SIZE(cell_character1));
++	if (ret)
++		goto rewrite_model;
++
++	ret = fg_write_regs(p, MAX17042_MODEL3, cell_character2,
++			     ARRAY_SIZE(cell_character2));
++	if (ret)
++		goto rewrite_model;
++
++check_model:
++	if (!check_count--) {
++		if (rewrite_count)
++			goto rewrite_model;
++		else
++			status_msg = "check failed!";
++
++		goto error;
++	}
++
++	ret = fg_read_regs(p, MAX17042_MODEL1, r_data0, ARRAY_SIZE(r_data0));
++	if (ret)
++		goto check_model;
++
++	ret = fg_read_regs(p, MAX17042_MODEL2, r_data1, ARRAY_SIZE(r_data1));
++	if (ret)
++		goto check_model;
++
++	ret = fg_read_regs(p, MAX17042_MODEL3, r_data2, ARRAY_SIZE(r_data2));
++	if (ret)
++		goto check_model;
++
++	for (i = 0; i < 16; i++) {
++		if ((cell_character0[i] != r_data0[i])
++		    || (cell_character1[i] != r_data1[i])
++		    || (cell_character2[i] != r_data2[i]))
++			goto rewrite_model;
++		}
++
++lock_model:
++	if (!lock_count--) {
++		if (rewrite_count)
++			goto rewrite_model;
++		else
++			status_msg = "lock failed!";
++
++		goto error;
++	}
++
++	/* Lock model access */
++	pmic_reg_write(p, MAX17042_MLOCKReg1, MODEL_LOCK1);
++	pmic_reg_write(p, MAX17042_MLOCKReg2, MODEL_LOCK2);
++
++	/* Verify the model access is locked */
++	ret = fg_read_regs(p, MAX17042_MODEL1, r_data0, ARRAY_SIZE(r_data0));
++	if (ret)
++		goto lock_model;
++
++	ret = fg_read_regs(p, MAX17042_MODEL2, r_data1, ARRAY_SIZE(r_data1));
++	if (ret)
++		goto lock_model;
++
++	ret = fg_read_regs(p, MAX17042_MODEL3, r_data2, ARRAY_SIZE(r_data2));
++	if (ret)
++		goto lock_model;
++
++	for (i = 0; i < ARRAY_SIZE(r_data0); i++) {
++		/* Check if model locked */
++		if (r_data0[i] || r_data1[i] || r_data2[i])
++			goto lock_model;
++	}
++
++	/* Write Custom Parameters */
++	fg_write_and_verify(p, MAX17042_RCOMP0, RCOMP0);
++	fg_write_and_verify(p, MAX17042_TEMPCO, TempCo);
++
++	/* Delay at least 350mS */
++	mdelay(350);
++
++	/* Initialization Complete */
++	pmic_reg_read(p, MAX17042_STATUS, &val);
++	/* Write and Verify Status with POR bit Cleared */
++	fg_write_and_verify(p, MAX17042_STATUS, val & ~MAX17042_POR);
++
++	/* Delay at least 350 ms */
++	mdelay(350);
++
++	status_msg = "OK!";
++error:
++	debug("%s: model init status: %s\n", p->name, status_msg);
++	return;
++}
++
++static int power_update_battery(struct pmic *p, struct pmic *bat)
++{
++	struct power_battery *pb = bat->pbat;
++	unsigned int val;
++	int ret = 0;
++
++	if (pmic_probe(p)) {
++		puts("Can't find max17042 fuel gauge\n");
++		return -ENODEV;
++	}
++
++	ret |= pmic_reg_read(p, MAX17042_VFSOC, &val);
++	pb->bat->state_of_chrg = (val >> 8);
++
++	pmic_reg_read(p, MAX17042_VCELL, &val);
++	debug("vfsoc: 0x%x\n", val);
++	pb->bat->voltage_uV = ((val & 0xFFUL) >> 3) + ((val & 0xFF00) >> 3);
++	pb->bat->voltage_uV = (pb->bat->voltage_uV * 625);
++
++	pmic_reg_read(p, 0x05, &val);
++	pb->bat->capacity = val >> 2;
++
++	return ret;
++}
++
++static int power_check_battery(struct pmic *p, struct pmic *bat)
++{
++	struct power_battery *pb = bat->pbat;
++	unsigned int val;
++	int ret = 0;
++
++	if (pmic_probe(p)) {
++		puts("Can't find max17042 fuel gauge\n");
++		return -ENODEV;
++	}
++
++	ret |= pmic_reg_read(p, MAX17042_STATUS, &val);
++	debug("fg status: 0x%x\n", val);
++
++	if (val & MAX17042_POR)
++		por_fuelgauge_init(p);
++
++	ret |= pmic_reg_read(p, MAX17042_VERSION, &val);
++	pb->bat->version = val;
++
++	power_update_battery(p, bat);
++	debug("fg ver: 0x%x\n", pb->bat->version);
++	printf("BAT: state_of_charge(SOC):%d%%\n",
++	       pb->bat->state_of_chrg);
++
++	printf("     voltage: %d.%6.6d [V] (expected to be %d [mAh])\n",
++	       pb->bat->voltage_uV / 1000000,
++	       pb->bat->voltage_uV % 1000000,
++	       pb->bat->capacity);
++
++	if (pb->bat->voltage_uV > 3850000)
++		pb->bat->state = EXT_SOURCE;
++	else if (pb->bat->voltage_uV < 3600000 || pb->bat->state_of_chrg < 5)
++		pb->bat->state = CHARGE;
++	else
++		pb->bat->state = NORMAL;
++
++	return ret;
++}
++
++static struct power_fg power_fg_ops = {
++	.fg_battery_check = power_check_battery,
++	.fg_battery_update = power_update_battery,
++};
++
++int power_fg_init(unsigned char bus)
++{
++	static const char name[] = "MAX17042_FG";
++	struct pmic *p = pmic_alloc();
++
++	if (!p) {
++		printf("%s: POWER allocation error!\n", __func__);
++		return -ENOMEM;
++	}
++
++	debug("Board Fuel Gauge init\n");
++
++	p->name = name;
++	p->interface = PMIC_I2C;
++	p->number_of_regs = FG_NUM_OF_REGS;
++	p->hw.i2c.addr = MAX17042_I2C_ADDR;
++	p->hw.i2c.tx_num = 2;
++	p->sensor_byte_order = PMIC_SENSOR_BYTE_ORDER_BIG;
++	p->bus = bus;
++
++	p->fg = &power_fg_ops;
++	return 0;
++}
+diff --git a/include/power/bq27xxx_fg.h b/include/power/bq27xxx_fg.h
+new file mode 100644
+index 0000000000..71a386e9d6
+--- /dev/null
++++ b/include/power/bq27xxx_fg.h
+@@ -0,0 +1,107 @@
++/*
++ * Copyright (C) 2013 Samsung Electronics
++ * Piotr Wilczek <p.wilczek@samsung.com>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ */
++#include <linux/delay.h>
++
++#ifndef __BQ27XXX_FG_H_
++#define __BQ27XXX_FG_H_
++
++/* BQ27441 REGISTERS */
++#define BQ27XXX_FG_I2C_ADDR  (0x55)
++
++
++/*STANDARD COMMAND REGISTER : TO READ OUT BATTERY DETAILS*/
++#define BQ27xxx_CONTROL			(0x00)
++#define BQ27xxx_DESIGN_CAPACITY		(0x3c) //DCAP
++#define BQ27xxx_VOLTAGE_NOW		(0x04) //Volt
++#define BQ27xxx_TEMPERATURE            	(0x02)
++#define BQ27xxx_NOMINAL_AVG_CURRENT	(0x08) //NAC
++#define BQ27xxx_FULL_CHARGE_CAPACITY	(0x0E) //FCC 
++#define BQ27xxx_STATE_OF_CHARGE		(0x1c) //SOC
++#define BQ27xxx_AVERAGE_CURRENT		(0x10) //AI
++#define BQ27xxx_FLAGS			(0x06)
++
++/*SUB CONTROL COMMAND : TO READ VENDOR , FG seal/unseal, config mode set ETC*/
++#define BQ27xxx_CONTROL_STATUS         	(0x0000)
++#define BQ27xxx_DEVICE_TYPE            	(0x0001)
++#define BQ27xxx_UNSEAL_KEY             	(0x8000)
++#define BQ27xxx_SET_CFGUPDATE          	(0x0013)
++
++#define BQ27xxx_SOFT_RESET             	(0x0042)
++#define BQ27xxx_SEALED_KEY		(0x0020)
++/*BLCOK COMMAND */
++
++
++/*FLAG BITS*/ 
++#define BQ27XXX_FLAG_DSC		(1<<0) //if set, Discharging detected
++#define BQ27XXX_FLAG_SOCF		(1<<1)
++#define BQ27XXX_FLAG_SOC1		(1<<2)
++#define BQ27XXX_FLAG_BAT_DET		(1<<3) //If set, Battery insertion detected
++#define BQ27xxx_FLAGS_CFGUPMODE		(1<<4)
++#define BQ27xxx_FLAGS_ITPOR		(1<<5) //If set, reload the configuration
++#define BQ27XXX_FLAG_FC			(1<<9) //if set, Full-charge is detected
++
++
++/*CONTROL STATUS BITS*/
++#define BQ27xxx_STATUS_SS		(1<<13)
++
++#define BQ27xxx_BLOCK_DATA_CHECKSUM	(0x60)
++#define BQ27xxx_BLOCK_DATA_CONTROL	(0x61)
++#define BQ27xxx_DATA_CLASS	  	(0x3E)
++#define BQ27xxx_DATA_BLOCK		(0x3F)
++#define BQ27xxx_DATA			(0x40)
++
++#define BQ27xxx_ID_STATE 		(82)
++#define BQ27xxx_DCAP		        (10) //Configures the design capacity of the connected battery
++#define BQ27xxx_DESIGN_ENERGY          	(12) //Configures the design energy of the connected battery
++#define BQ27xxx_TAPER_RATE             	(27) //Configures taper rate of connected battery
++#define BQ27xxx_TERMINATE_VOLTAGE      	(16) //Configures the terminate voltage
++#define BQ27xxx_V_CHG_TERM  
++
++enum POWER_SUPPLY_STATUS{
++	POWER_SUPPLY_STATUS_CHARGING =1,
++	POWER_SUPPLY_STATUS_DISCHARGING,
++	POWER_SUPPLY_STATUS_FULL,
++	POWER_SUPPLY_STATUS_NOT_CHARGING
++};
++
++enum POWER_SUPPLY_CAPACITY_LEVEL{
++	POWER_SUPPLY_CAPACITY_LEVEL_FULL =1,
++	POWER_SUPPLY_CAPACITY_LEVEL_LOW,
++	POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL,
++	POWER_SUPPLY_CAPACITY_LEVEL_NORMAL
++};
++
++typedef struct BQ27xxx_device_info{
++         u16 design_capacity;
++         u16 design_energy;
++         u16 taper_rate;
++         u16 terminate_voltage;
++         u16 wait_time;
++}BQ27xxx_device;
++
++typedef struct BQ27XXX_BATTAERY{
++
++	u16 chip_id;
++
++	u16 volt_now;                   //mVolt
++	int current_now;                //mA
++	u16 soc;                        //%
++	u16 full_charge_capacity;       //mAh
++	u16 nominal_available_capacity; //mAh
++	u16 d_cap;                      //mAh
++	u16 flags;		
++
++	u8 supply_status;
++	u8 capacity_level;
++
++}bq27xxx_battery;
++
++
++int power_fg_init(unsigned char bus, struct udevice *i2c_dev );
++int power_check_battery(bq27xxx_battery *); 
++#endif /* __BQ27XXX_FG_H_ */
++
+-- 
+2.25.1
+

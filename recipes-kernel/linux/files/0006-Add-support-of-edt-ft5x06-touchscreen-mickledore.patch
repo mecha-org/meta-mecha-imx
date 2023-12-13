@@ -1,0 +1,24 @@
+From fcedceadfae2cd6d048c870c64539c369f6edabc Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Fri, 1 Dec 2023 17:05:22 +0530
+Subject: [PATCH] Added-support-of-edt-ft5x06-touchscreen-mickledore
+
+---
+ drivers/input/touchscreen/edt-ft5x06.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
+index 9ac1378610bc..e1f3b28275ab 100644
+--- a/drivers/input/touchscreen/edt-ft5x06.c
++++ b/drivers/input/touchscreen/edt-ft5x06.c
+@@ -1240,6 +1240,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
+ 		usleep_range(5000, 6000);
+ 		gpiod_set_value_cansleep(tsdata->reset_gpio, 0);
+ 		msleep(300);
++		gpiod_set_value_cansleep(tsdata->reset_gpio, 1);
+ 	}
+ 
+ 	input = devm_input_allocate_device(&client->dev);
+-- 
+2.25.1
+
