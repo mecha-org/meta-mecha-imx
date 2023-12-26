@@ -1,0 +1,14 @@
+[Unit]
+Description=Load camera module after login prompt
+After=getty.target
+
+[Service]
+Type=simple
+User=root
+RemainAfterExit=yes
+ExecStart=/etc/init.d/camera_module_load.sh
+#TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target
+

@@ -1,0 +1,49 @@
+From ffae775d1849a571c6f1aa93efbe56f6aa648a8f Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Fri, 22 Dec 2023 18:05:29 +0530
+Subject: [PATCH] ADD-support-for-dtb-overlay
+
+---
+ include/configs/imx8mm_evk.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/include/configs/imx8mm_evk.h b/include/configs/imx8mm_evk.h
+index 2b7e842f35..650197a1a3 100644
+--- a/include/configs/imx8mm_evk.h
++++ b/include/configs/imx8mm_evk.h
+@@ -110,8 +110,11 @@
+ 	"fdt_addr_r=0x43000000\0"			\
+ 	"fdt_addr=0x43000000\0"			\
+ 	"fdt_high=0xffffffffffffffff\0"		\
++	"fdt_resize_ov=fdt resize 8192\0" 	\
+ 	"boot_fit=no\0" \
+ 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
++	"fdt_apply_addr_ov=fdt apply 0x430c0000\0" \
++	"fdtaddr_ov=fdt addr 0x43000000\0" \
+ 	"bootm_size=0x10000000\0" \
+ 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
+ 	"mmcpart=1\0" \
+@@ -123,12 +126,20 @@
+ 		"source\0" \
+ 	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
+ 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile}\0" \
++	"overlayfile=/boot/overlays.txt \0" "fdt_env_ov=ext4load mmc ${mmcdev}:${mmcpart} 0x430c0000 ${overlayfile} && env import -t 0x430c0000 ${filesize}\0" \
++    "loadfdt_ov=for overlay_file in ${fdt_overlays}; do echo Applying DTBO....; ext4load mmc ${mmcdev}:${mmcpart} 0x430c0000 /boot/${overlay_file} ; done\0" \
+ 	"mmcboot=echo Booting from mmc ...; " \
+ 		"run mmcargs; " \
+ 		"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
+ 			"bootm ${loadaddr}; " \
+ 		"else " \
+ 			"if run loadfdt; then " \
++								 "run fdtaddr_ov;"\
++                                 "run fdt_resize_ov;"\
++                                 "run fdt_env_ov;" \
++                                 "run loadfdt_ov;" \
++                                 "run fdt_apply_addr_ov;" \
++							   	 "run loadimage; " \
+ 				"booti ${loadaddr} - ${fdt_addr_r}; " \
+ 			"else " \
+ 				"echo WARN: Cannot load the DT; " \
+-- 
+2.25.1
+
