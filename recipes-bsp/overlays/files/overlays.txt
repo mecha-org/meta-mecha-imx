@@ -1,0 +1,1 @@
+fdt_overlays=camera_discable1.dtbo camera_discable2.dtbo

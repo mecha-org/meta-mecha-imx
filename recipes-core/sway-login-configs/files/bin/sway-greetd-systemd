@@ -1,3 +1,4 @@
 #!/bin/sh
+unset WAYLAND_DISPLAY
 systemd-cat -t sway-greeter /usr/bin/sway-greetd
 

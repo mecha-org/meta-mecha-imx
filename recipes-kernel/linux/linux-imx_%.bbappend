@@ -13,6 +13,7 @@ SRC_URI:append = "  file://0001-Add-imx8mm-mecha-som-gen1-dtb.patch \
 					file://0009-Etnaviv-driver-enable-in-imx8mm-dtsi-mickledore.patch \
 					file://0010-Etnaviv-debug-logs-and-enable-clock-mickledore.patch \
 					file://0011-Add-imx8mm-mecha-som-gen1-ramfs-dts.patch \
+					file://0017-Change-linux-logo.patch \
 			  	 "
 
 
@@ -158,3 +159,61 @@ do_configure:append () {
 	echo "CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y" >> $config
 
 }
+
+# echo "############ CAAM-configs ############" >> $config
+
+# sed -i "/# CONFIG_BLK_DEV_DM[ =]/d" $config
+# echo "CONFIG_BLK_DEV_DM=y" >> $config
+# sed -i "/# CONFIG_BLK_DEV_MD[ =]/d" $config
+# echo "CONFIG_BLK_DEV_MD=y" >> $config
+# sed -i "/# CONFIG_MD[ =]/d" $config
+# echo "CONFIG_MD=y" >> $config
+# sed -i "/# CONFIG_DM_CRYPT[ =]/d" $config
+# echo "CONFIG_DM_CRYPT=y" >> $config
+
+# sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_DESC[ =]/d" $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_DESC=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY[ =]/d" $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB[ =]/d" $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API[ =]/d" $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API=y" >> $config
+# sed -i "/# CONFIG_CAAM_KEYS[ =]/d" $config
+# echo "CONFIG_CAAM_KEYS=y" >> $config
+
+# sed -i "/# CONFIG_CRYPTO_USER_API[ =]/d" $config
+# echo "CONFIG_CRYPTO_USER_API=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_USER_API_HASH[ =]/d" $config
+# echo "CONFIG_CRYPTO_USER_API_HASH=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_USER_API_AEAD[ =]/d" $config
+# echo "CONFIG_CRYPTO_USER_API_AEAD=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_USER_API_SKCIPHER[ =]/d" $config
+# echo "CONFIG_CRYPTO_USER_API_SKCIPHER=y" >> $config
+# sed -i "/# CONFIG_CRYPTO_USER_API_RNG[ =]/d" $config
+# echo "CONFIG_CRYPTO_USER_API_RNG=y" >> $config
+
+# Following is the minimal kernel parameters list, which should be enabled to include DM-Crypt with CAAM secure key:
+# Enable DM-Crypt and its dependencies
+# CONFIG_BLK_DEV_DM=y
+# CONFIG_BLK_DEV_MD=y
+# CONFIG_MD=y
+# CONFIG_DM_CRYPT=y
+  
+# Enable CAAM black key/blob driver and its dependencies
+# CONFIG_CRYPTO_DEV_FSL_CAAM_SECVIO=m
+# CONFIG_CRYPTO_DEV_FSL_CAAM=m
+# CONFIG_CRYPTO_DEV_FSL_CAAM_SM_TEST=m
+
+# CONFIG_CRYPTO_DEV_FSL_CAAM_DESC=y
+# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY=y
+# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB=y
+# CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API=y
+# CONFIG_CAAM_KEYS=y
+
+# User-space interface for hash, AEAD, and symmetric key cipher algorithms.
+# CONFIG_CRYPTO_USER_API=y
+# CONFIG_CRYPTO_USER_API_HASH=y
+# CONFIG_CRYPTO_USER_API_AEAD=y
+# CONFIG_CRYPTO_USER_API_SKCIPHER=y
+# CONFIG_CRYPTO_USER_API_RNG=y
