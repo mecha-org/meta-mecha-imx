@@ -197,9 +197,9 @@ echo "" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-arm/meta-arm\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-arm/meta-arm-toolchain\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-virtualization\"" >> conf/bblayers.conf
-echo "BBLAYERS += \"\${BSPDIR}/sources/meta-rust\"" >> conf/bblayers.conf
+echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rust\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-clang\"" >> $BUILD_DIR/conf/bblayers.conf
-echo "BBLAYERS += \"\${BSPDIR}/sources/meta-webkit\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-webkit\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-browser/meta-chromium\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-qt6\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rauc\"" >> $BUILD_DIR/conf/bblayers.conf
