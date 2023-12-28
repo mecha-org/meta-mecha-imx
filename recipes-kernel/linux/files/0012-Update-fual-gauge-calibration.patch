@@ -1,0 +1,119 @@
+From 4ada312f4621a8b9ab2eaeae745126a02ba7d3a5 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Wed, 27 Dec 2023 12:15:48 +0000
+Subject: [PATCH] Update-fual-gauge-calibration
+
+---
+ .../freescale/imx8mm-mecha-comet-m-gen1.dts   |  2 +-
+ drivers/power/supply/bq27xxx_battery.c        | 19 +++++++++++++------
+ drivers/power/supply/power_supply_core.c      |  4 ++--
+ 3 files changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
+index 74a572969c7e..e3723d513583 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-mecha-comet-m-gen1.dts
+@@ -167,7 +167,7 @@ bat: battery {
+ 			compatible = "simple-battery";
+ 			device-chemistry = "lithium-ion-polymer";
+ 
+-			energy-full-design-microwatt-hours = <3000000>;
++			energy-full-design-microwatt-hours = <1260000>;
+ 			charge-full-design-microamp-hours = <3000000>;
+ 			voltage-min-design-microvolt = <3200000>;
+ 			voltage-max-design-microvolt = <4200000>;
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
+index 8bf048fbd36a..9617cfcd3876 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -934,11 +934,9 @@ static struct bq27xxx_dm_reg bq27426_dm_regs[] = {
+ 	[BQ27XXX_DM_TERMINATE_VOLTAGE] = { 82, 10, 2, 2500,  3700 },
+ };
+ 
+-#if 0 /* not yet tested */
++
+ #define bq27441_dm_regs bq27421_dm_regs
+-#else
+-#define bq27441_dm_regs NULL
+-#endif
++
+ 
+ #if 0 /* not yet tested */
+ static struct bq27xxx_dm_reg bq27621_dm_regs[] = {
+@@ -1477,15 +1475,20 @@ static void bq27xxx_battery_settings(struct bq27xxx_device_info *di)
+ 	struct power_supply_battery_info *info;
+ 	unsigned int min, max;
+ 
+-	if (power_supply_get_battery_info(di->bat, &info) < 0)
+-		return;
++	printk("BAT_DEBUG : %s, %s, %d : Enter",__FILE__, __func__, __LINE__);
++	if (power_supply_get_battery_info(di->bat, &info) < 0) {
++		printk("BAT_DEBUG : %s, %s, %d : Error in get_bat_info",__FILE__, __func__, __LINE__);
++ 		return;
++	}
+ 
+ 	if (!di->dm_regs) {
++		printk("BAT_DEBUG : %s, %s, %d : data memory update error",__FILE__, __func__, __LINE__);
+ 		dev_warn(di->dev, "data memory update not supported for chip\n");
+ 		return;
+ 	}
+ 
+ 	if (info->energy_full_design_uwh != info->charge_full_design_uah) {
++		printk("BAT_DEBUG : %s, %s, %d : error",__FILE__, __func__, __LINE__);
+ 		if (info->energy_full_design_uwh == -EINVAL)
+ 			dev_warn(di->dev, "missing battery:energy-full-design-microwatt-hours\n");
+ 		else if (info->charge_full_design_uah == -EINVAL)
+@@ -1495,6 +1498,7 @@ static void bq27xxx_battery_settings(struct bq27xxx_device_info *di)
+ 	/* assume min == 0 */
+ 	max = di->dm_regs[BQ27XXX_DM_DESIGN_ENERGY].max;
+ 	if (info->energy_full_design_uwh > max * 1000) {
++		printk("BAT_DEBUG : %s, %s, %d : error",__FILE__, __func__, __LINE__);
+ 		dev_err(di->dev, "invalid battery:energy-full-design-microwatt-hours %d\n",
+ 			info->energy_full_design_uwh);
+ 		info->energy_full_design_uwh = -EINVAL;
+@@ -1503,6 +1507,7 @@ static void bq27xxx_battery_settings(struct bq27xxx_device_info *di)
+ 	/* assume min == 0 */
+ 	max = di->dm_regs[BQ27XXX_DM_DESIGN_CAPACITY].max;
+ 	if (info->charge_full_design_uah > max * 1000) {
++		printk("BAT_DEBUG : %s, %s, %d : error",__FILE__, __func__, __LINE__);
+ 		dev_err(di->dev, "invalid battery:charge-full-design-microamp-hours %d\n",
+ 			info->charge_full_design_uah);
+ 		info->charge_full_design_uah = -EINVAL;
+@@ -1513,6 +1518,7 @@ static void bq27xxx_battery_settings(struct bq27xxx_device_info *di)
+ 	if ((info->voltage_min_design_uv < min * 1000 ||
+ 	     info->voltage_min_design_uv > max * 1000) &&
+ 	     info->voltage_min_design_uv != -EINVAL) {
++		printk("BAT_DEBUG : %s, %s, %d : error",__FILE__, __func__, __LINE__);
+ 		dev_err(di->dev, "invalid battery:voltage-min-design-microvolt %d\n",
+ 			info->voltage_min_design_uv);
+ 		info->voltage_min_design_uv = -EINVAL;
+@@ -1522,6 +1528,7 @@ static void bq27xxx_battery_settings(struct bq27xxx_device_info *di)
+ 	     info->charge_full_design_uah != -EINVAL) ||
+ 	     info->voltage_min_design_uv  != -EINVAL)
+ 		bq27xxx_battery_set_config(di, info);
++		printk("BAT_DEBUG : %s, %s, %d : error",__FILE__, __func__, __LINE__);
+ }
+ 
+ /*
+diff --git a/drivers/power/supply/power_supply_core.c b/drivers/power/supply/power_supply_core.c
+index 8382be867d27..b8b6bc233c71 100644
+--- a/drivers/power/supply/power_supply_core.c
++++ b/drivers/power/supply/power_supply_core.c
+@@ -610,12 +610,12 @@ int power_supply_get_battery_info(struct power_supply *psy,
+ 		 * Proceed to look for a simple battery.
+ 		 */
+ 		err = 0;
+-
++/*
+ 	if (strcmp("simple-battery", value)) {
+ 		err = -ENODEV;
+ 		goto out_put_node;
+ 	}
+-
++*/
+ 	info = devm_kzalloc(&psy->dev, sizeof(*info), GFP_KERNEL);
+ 	if (!info) {
+ 		err = -ENOMEM;
+-- 
+2.35.4
+

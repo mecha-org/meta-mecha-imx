@@ -13,6 +13,7 @@ SRC_URI:append = "  file://0001-Add-imx8mm-mecha-som-gen1-dtb.patch \
 					file://0009-Etnaviv-driver-enable-in-imx8mm-dtsi-mickledore.patch \
 					file://0010-Etnaviv-debug-logs-and-enable-clock-mickledore.patch \
 					file://0011-Add-imx8mm-mecha-som-gen1-ramfs-dts.patch \
+					file://0012-Update-fual-gauge-calibration.patch \ 
 					file://0017-Change-linux-logo.patch \
 			  	 "
 
@@ -160,6 +161,12 @@ do_configure:append () {
 
 }
 
+# echo "############ CAAM configs ############" >> $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_DESC=y" >> $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY=y" >> $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB=y" >> $config
+# echo "CONFIG_CAAM_KEYS=y" >> $config
+
 # echo "############ CAAM-configs ############" >> $config
 
 # sed -i "/# CONFIG_BLK_DEV_DM[ =]/d" $config
@@ -171,14 +178,16 @@ do_configure:append () {
 # sed -i "/# CONFIG_DM_CRYPT[ =]/d" $config
 # echo "CONFIG_DM_CRYPT=y" >> $config
 
+
+# sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API[ =]/d" $config
+# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API=y" >> $config
+
 # sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_DESC[ =]/d" $config
 # echo "CONFIG_CRYPTO_DEV_FSL_CAAM_DESC=y" >> $config
 # sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY[ =]/d" $config
 # echo "CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY=y" >> $config
 # sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB[ =]/d" $config
 # echo "CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB=y" >> $config
-# sed -i "/# CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API[ =]/d" $config
-# echo "CONFIG_CRYPTO_DEV_FSL_CAAM_TK_API=y" >> $config
 # sed -i "/# CONFIG_CAAM_KEYS[ =]/d" $config
 # echo "CONFIG_CAAM_KEYS=y" >> $config
 
@@ -199,6 +208,8 @@ do_configure:append () {
 # CONFIG_BLK_DEV_MD=y
 # CONFIG_MD=y
 # CONFIG_DM_CRYPT=y
+# CONFIG_DM_MULTIPATH=y
+# CONFIG_DM_UEVENT=y
   
 # Enable CAAM black key/blob driver and its dependencies
 # CONFIG_CRYPTO_DEV_FSL_CAAM_SECVIO=m
@@ -217,3 +228,8 @@ do_configure:append () {
 # CONFIG_CRYPTO_USER_API_AEAD=y
 # CONFIG_CRYPTO_USER_API_SKCIPHER=y
 # CONFIG_CRYPTO_USER_API_RNG=y
+
+# CONFIG_CRYPTO_DEV_FSL_CAAM_DESC=y
+# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY=y
+# CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB=y
+# CONFIG_CAAM_KEYS=y
