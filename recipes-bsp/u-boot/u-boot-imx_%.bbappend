@@ -9,9 +9,20 @@ SRC_URI += " file://0001-Set-imx8mm-mecha-comet-m-gen1.dtb-as-default.patch \
 			 file://0003-Added-bq27xxx-fuel-gauge-support-mickledore.patch \
 			 file://0005-Add-st7701-display-controller-and-backlight-support.patch \
 			 file://0006-Shutdown-from-uboot-on-battery-state.patch \
+			 file://0007-Change-U-boot-logo.patch \
+			 file://logo.bmp \ 
+			 file://low_battery.bmp \
+			 file://0008-Add-env-for-u-boot-logo.patch \
 			"
 
 SRC_URI:append = "${@bb.utils.contains('DDRSIZE', '1', ' file://0004-Add-Support-for-4GB-DRAM-mickledore.patch', '', d)}"
+
+
+# do_install:append() {
+#     install -d ${D}/boot/
+#     install -m 0775 ${WORKDIR}/logo.bmp ${D}/boot
+#     install -m 0775 ${WORKDIR}/low_battery.bmp ${D}/boot
+# }
 
 #	file://0006-ADD-support-for-dtb-overlay.patch 
 # Tow files to enable fw_printenv command in userspace
@@ -34,4 +45,9 @@ do_configure:append () {
 	sed -i "/# CONFIG_CMD_IMPORTENV is not set/d" $config
 	echo "CONFIG_CMD_IMPORTENV=y" >> $config
 
+	sed -i "/# CONFIG_SPLASH_SOURCE is not set/d" $config
+	echo "CONFIG_SPLASH_SOURCE=y" >> $config
+
 }
+
+#CONFIG_SPLASH_SOURCE=y
