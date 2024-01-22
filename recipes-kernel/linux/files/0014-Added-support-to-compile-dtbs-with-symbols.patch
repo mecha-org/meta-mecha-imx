@@ -1,0 +1,33 @@
+From ed2d4f2c473557552806ac29ec7d3a0cff8e7ea0 Mon Sep 17 00:00:00 2001
+From: Riddhi Kavar <riddhi.kavar@siliconsignals.io>
+Date: Sat, 6 Jan 2024 18:34:03 +0530
+Subject: [PATCH 1/2] Added support to compile dtbs with symbols
+
+Made changes to build dtbs with symbols
+
+Note : CONFIG_OF_OVERLAY should be set as "Y"
+
+Signed-off-by: Riddhi Kavar <riddhi.kavar@siliconsignals.io>
+---
+ scripts/Makefile.lib | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 0a8a4689c3eb..63842c238456 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -313,6 +313,11 @@ DTC_FLAGS += -Wnode_name_chars_strict \
+ 	-Winterrupt_provider
+ endif
+ 
++ifeq ($(CONFIG_OF_OVERLAY),y)
++        # enable creation of __symbols__ node
++        DTC_FLAGS += -@
++endif
++
+ DTC_FLAGS += $(DTC_FLAGS_$(basetarget))
+ 
+ # Set -@ if the target is a base DTB that overlay is applied onto
+-- 
+2.25.1
+

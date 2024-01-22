@@ -557,8 +557,8 @@ index 0000000000..eb7fd12633
 +static int ST7701S_panel_disable(struct udevice *dev)
 +{
 +       struct ST7701S_panel_priv *priv = dev_get_priv(dev);
-+
-+       dm_gpio_set_value(&priv->reset, true);
++       if (&priv->reset != NULL)
++       	dm_gpio_set_value(&priv->reset, true);
 +
 +       return 0;
 +}

@@ -13,10 +13,13 @@ SRC_URI += " file://0001-Set-imx8mm-mecha-comet-m-gen1.dtb-as-default.patch \
 			 file://logo.bmp \ 
 			 file://low_battery.bmp \
 			 file://0008-Add-env-for-u-boot-logo.patch \
+			 file://0009-Add-Support-for-dtbo-imx8mm-evk-h.patch \
 			"
 
 SRC_URI:append = "${@bb.utils.contains('DDRSIZE', '1', ' file://0004-Add-Support-for-4GB-DRAM-mickledore.patch', '', d)}"
+# IMAGE_BOOT_FILES:append = " logo.bmp low_battery.bmp"
 
+# else {run_command("mmc dev 2", 0); run_command("mmc rescan", 0);run_command("load mmc 2 ${loadaddr} logo.bmp", 0);run_command("bmp display ${loadaddr}", 0);}
 
 # do_install:append() {
 #     install -d ${D}/boot/

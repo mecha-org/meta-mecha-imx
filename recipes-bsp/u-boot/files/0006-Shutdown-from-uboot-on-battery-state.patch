@@ -71,13 +71,13 @@ index a4a546c667..e3e71322db 100644
  
  int board_late_init(void)
  {
-+	if (is_battery_low) {
++	if (is_battery_low) { run_command("mmc dev 2", 0); run_command("mmc rescan", 0);
 +		run_command("load mmc 2 ${loadaddr} low_battery.bmp", 0);
 +		run_command("bmp display ${loadaddr}", 0);
 +		printf("powering down in 10 seconds\n");
 +		mdelay(10000);
 +		memset(0x30370038, 0x60, 1);
-+	}
++	} else {run_command("mmc dev 2", 0); run_command("mmc rescan", 0);run_command("load mmc 2 ${loadaddr} logo.bmp", 0);run_command("bmp display ${loadaddr}", 0);}
  #ifdef CONFIG_ENV_IS_IN_MMC
  	board_late_mmc_env_init();
  #endif
