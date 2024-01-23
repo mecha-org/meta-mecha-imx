@@ -1,0 +1,55 @@
+From 14270053f46d9b66ad5d85b4a43c38e0aaad3c8c Mon Sep 17 00:00:00 2001
+From: Riddhi Kavar <riddhi.kavar@siliconsignals.io>
+Date: Thu, 18 Jan 2024 18:12:17 +0530
+Subject: [PATCH 2/2] Resolved issue of display with overlay
+
+Signed-off-by: Riddhi Kavar <riddhi.kavar@siliconsignals.io>
+---
+ .../arm64/boot/dts/freescale/mecha-mc-ci8mm.dts | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+index 243044e7223e..e947b5564e8f 100644
+--- a/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
++++ b/arch/arm64/boot/dts/freescale/mecha-mc-ci8mm.dts
+@@ -32,14 +32,7 @@ led_blue: red_blue {
+ 		};
+ 	};
+ 	
+-	gpio_init {
+-		compatible = "gpio-keys";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&pinctrl_gpios>;
+-	};
+-	
+-
+-	backlight: backlight {
++	backlight-dsi {
+ 		status = "okay";
+ 		compatible = "pwm-backlight";
+ 		pwms = <&pwm3 0 5000000>;
+@@ -48,6 +41,12 @@ backlight: backlight {
+ 		default-brightness-level = <250>;
+ 	};
+ 
++	gpio_init {
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_gpios>;
++	};
++
+ 	sound-max98090 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "max98090-audio";
+@@ -405,7 +404,7 @@ &lcdif {
+ 
+ &mipi_dsi {
+         status = "okay";
+-        panel@0 {
++        panel_ep: panel@0 {
+                 compatible = "sitronix,st7701s";
+                 reg = <0>;
+                 reset-gpio = <&gpio2 19 GPIO_ACTIVE_HIGH>;
+-- 
+2.25.1
+

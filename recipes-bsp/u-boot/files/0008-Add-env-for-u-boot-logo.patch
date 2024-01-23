@@ -1,0 +1,26 @@
+From c8bfcf92d17aad2ff8bb5df2f53613486358372a Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Thu, 28 Dec 2023 16:35:11 +0530
+Subject: [PATCH] Add-env-for-u-boot-logo
+
+---
+ include/configs/imx8mm_evk.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/configs/imx8mm_evk.h b/include/configs/imx8mm_evk.h
+index 2b7e842f35..43e8174226 100644
+--- a/include/configs/imx8mm_evk.h
++++ b/include/configs/imx8mm_evk.h
+@@ -106,6 +106,9 @@
+ 	"bsp_script=boot.scr\0" \
+ 	"image=Image\0" \
+ 	"splashimage=0x50000000\0" \
++	"splashdevpart=2:1\0" \
++	"splashfile=logo.bmp\0" \
++	"splashsource=mmc_fs\0" \
+ 	"console=ttymxc1,115200\0" \
+ 	"fdt_addr_r=0x43000000\0"			\
+ 	"fdt_addr=0x43000000\0"			\
+-- 
+2.25.1
+

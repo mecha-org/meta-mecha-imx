@@ -1,37 +1,40 @@
-From e37aa4785eab4d2e186cdb06be886981b024a13e Mon Sep 17 00:00:00 2001
+From 7ab4071c0c20333fb00471062a909540d579372f Mon Sep 17 00:00:00 2001
 From: chiragp-mechas <chiragp@mechasystems.com>
-Date: Thu, 28 Dec 2023 16:50:11 +0530
+Date: Wed, 27 Dec 2023 13:35:03 +0000
 Subject: [PATCH] Shutdown-from-uboot-on-battery-state
 
 ---
- board/freescale/imx8mm_evk/imx8mm_evk.c | 36 ++++++++++++++++++++++---
- 1 file changed, 33 insertions(+), 3 deletions(-)
+ board/freescale/imx8mm_evk/imx8mm_evk.c | 36 ++++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
 diff --git a/board/freescale/imx8mm_evk/imx8mm_evk.c b/board/freescale/imx8mm_evk/imx8mm_evk.c
-index a4a546c667..e3e71322db 100644
+index a4a546c667..d058999c5d 100644
 --- a/board/freescale/imx8mm_evk/imx8mm_evk.c
 +++ b/board/freescale/imx8mm_evk/imx8mm_evk.c
-@@ -21,6 +21,10 @@
+@@ -21,7 +21,9 @@
  #include "../common/tcpc.h"
  #include <usb.h>
  #include <power/bq27xxx_fg.h>
+-
 +#include <imx_sip.h>
 +#include <linux/arm-smccc.h>
 +#include <splash.h>
 +#define DEVICE_SHUTDOWN_BATTERY_PERCENT 5
- 
  DECLARE_GLOBAL_DATA_PTR;
  
-@@ -168,7 +172,7 @@ int power_fg_i2c_init_update(uint8_t i2c_bus, uint8_t addr)
+ #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)
+@@ -166,9 +168,7 @@ int power_fg_i2c_init_update(uint8_t i2c_bus, uint8_t addr)
+ 		printf("Err:i2c bus handler not found\n");
+ 		return -ENODEV;
  	}
- 	power_fg_init_update(i2c_bus, i2c_dev);
- 
+-	power_fg_init_update(i2c_bus, i2c_dev);
+-
 -	return 0;
 +	return power_fg_init_update(i2c_bus, i2c_dev);
  }
  
  static int setup_pd_switch(uint8_t i2c_bus, uint8_t addr)
-@@ -340,26 +344,52 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
+@@ -340,26 +340,50 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
  }
  
  #endif
@@ -71,13 +74,13 @@ index a4a546c667..e3e71322db 100644
  
  int board_late_init(void)
  {
-+	if (is_battery_low) { run_command("mmc dev 2", 0); run_command("mmc rescan", 0);
-+		run_command("load mmc 2 ${loadaddr} low_battery.bmp", 0);
-+		run_command("bmp display ${loadaddr}", 0);
++	if (is_battery_low) {
++		env_set("splashfile", "low_battery.bmp");
++		splash_screen_prepare();
 +		printf("powering down in 10 seconds\n");
 +		mdelay(10000);
 +		memset(0x30370038, 0x60, 1);
-+	} else {run_command("mmc dev 2", 0); run_command("mmc rescan", 0);run_command("load mmc 2 ${loadaddr} logo.bmp", 0);run_command("bmp display ${loadaddr}", 0);}
++	}
  #ifdef CONFIG_ENV_IS_IN_MMC
  	board_late_mmc_env_init();
  #endif
@@ -87,5 +90,5 @@ index a4a546c667..e3e71322db 100644
  		env_set("board_name", "EVK");
  		env_set("board_rev", "iMX8MM");
 -- 
-2.25.1
+2.35.4
 

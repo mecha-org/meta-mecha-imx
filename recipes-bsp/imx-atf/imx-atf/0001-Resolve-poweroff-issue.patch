@@ -1,20 +1,25 @@
-From e12a2c3c4a7bf103bd70a09f416d1c61e1e6d79a Mon Sep 17 00:00:00 2001
-From: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
-Date: Thu, 22 Jun 2023 14:04:14 +0530
-Subject: [PATCH] Resolve poweroff issue
+From b423be4b10019515abe26834529b5882405f9da7 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Mon, 8 Jan 2024 13:44:40 +0530
+Subject: [PATCH] Resole-poweroff-issue
 
+---
+ plat/imx/imx8m/imx8m_psci_common.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/plat/imx/imx8m/imx8m_psci_common.c b/plat/imx/imx8m/imx8m_psci_common.c
-index 4c84557ba..25b63fb41 100644
+index 4a7255657..050f54ff6 100644
 --- a/plat/imx/imx8m/imx8m_psci_common.c
 +++ b/plat/imx/imx8m/imx8m_psci_common.c
-@@ -249,8 +249,8 @@ int imx_system_reset2(int is_vendor, int reset_type, u_register_t cookie)
- void __dead2 imx_system_off(void)
- {
- 	mmio_write_32(IMX_SNVS_BASE + SNVS_LPCR, SNVS_LPCR_SRTC_ENV |
--			SNVS_LPCR_DP_EN | SNVS_LPCR_TOP | SNVS_LPCR_LPTA_EN | SNVS_LPCR_LPWUI_EN);
+@@ -251,10 +251,9 @@ void __dead2 imx_system_off(void)
+ 	uint32_t val;
+ 
+ 	val = mmio_read_32(IMX_SNVS_BASE + SNVS_LPCR);
+-	val |= SNVS_LPCR_SRTC_ENV | SNVS_LPCR_DP_EN | SNVS_LPCR_TOP |
+-		SNVS_LPCR_LPTA_EN | SNVS_LPCR_LPWUI_EN;
++	val |= SNVS_LPCR_SRTC_ENV | SNVS_LPCR_DP_EN | SNVS_LPCR_TOP;
+ 	mmio_write_32(IMX_SNVS_BASE + SNVS_LPCR, val);
 -
-+			SNVS_LPCR_DP_EN | SNVS_LPCR_TOP );
 +	INFO("poweroff\n");
  	while (1)
  		;

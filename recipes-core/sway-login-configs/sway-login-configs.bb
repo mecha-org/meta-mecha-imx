@@ -18,11 +18,12 @@ SRC_URI =   "file://bin/sway-greetd \
 
 S = "${WORKDIR}"
 
-inherit systemd
+inherit systemd features_check
 
 SYSTEMD_SERVICE:${PN} = "greetd.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 FILES_${PN} = " ${systemd_unitdir}/system/greetd.service"
+REQUIRED_DISTRO_FEATURES = "wayland x11 ${@oe.utils.conditional('VIRTUAL-RUNTIME_init_manager', 'systemd', 'pam', '', d)}"
 
 do_install() {
     install -d ${D}${bindir}

@@ -14,9 +14,11 @@ SRC_URI:append = "  file://0001-Add-imx8mm-mecha-som-gen1-dtb.patch \
 					file://0010-Etnaviv-debug-logs-and-enable-clock-mickledore.patch \
 					file://0011-Add-imx8mm-mecha-som-gen1-ramfs-dts.patch \
 					file://0012-Update-fual-gauge-calibration.patch \ 
+					file://0013-Resolve-camera-invert-preview-issue.patch \
+					file://0014-Added-support-to-compile-dtbs-with-symbols.patch \
+					file://0015-Resolved-issue-of-display-with-overlay.patch \
 					file://0017-Change-linux-logo.patch \
 			  	 "
-
 
 do_configure:append () {
 	echo "############ Writing MECHA configs ############### "
