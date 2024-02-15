@@ -1,4 +1,4 @@
-DESCRIPTION = "Overlays File Upload"
+DESCRIPTION = "Overlays File and u-boot logos Upload"
 DEPEND = ""
 LICENSE = "CLOSED"
 

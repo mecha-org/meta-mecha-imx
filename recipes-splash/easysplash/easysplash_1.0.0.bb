@@ -21,6 +21,8 @@ SRC_URI = "\
 
 #SRC_URI_sama5d27-som1-ek-sd += "file://0001-init-systemd-unblank-framebuffer-before.patch"
 
+SRC_URI:append = "  file://0001-Add-delay-in-bootanimation.patch"
+
 PV = "1.0.0+git${SRCPV}"
 
 S = "${WORKDIR}/git"

@@ -1,4 +1,6 @@
 # `-l` activates layer-shell mode. Notice that `swaymsg exit` will run after gtkgreet.
+# exec "mecha_greeter -s /etc/mechanix-shell/mecha_greeter/settings.yml -u /etc/mechanix-shell/mecha_greeter/users.yml --command sway-systemd; swaymsg exit"
+
 exec "gtkgreet --command sway-systemd; swaymsg exit"
 
 bindsym Mod4+shift+e exec swaynag \

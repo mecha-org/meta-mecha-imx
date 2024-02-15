@@ -12,8 +12,6 @@ SRC_URI =   "file://bin/sway-greetd \
              file://etc-greetd/sway-config \
              file://etc-pamd/greetd \
              file://etc-profiled/sway.sh \
-             file://etc/fw_env.config \
-             file://etc/u-boot-initial-env \
             "
 
 S = "${WORKDIR}"
@@ -46,16 +44,8 @@ do_install() {
 
     install -d ${D}/etc/profile.d
     install -c -m 0644 ${WORKDIR}/etc-profiled/sway.sh ${D}/etc/profile.d
-
-    install -d ${D}/etc 
-    install -c -m 0644 ${WORKDIR}/etc/fw_env.config ${D}/etc/
-    install -c -m 0644 ${WORKDIR}/etc/u-boot-initial-env ${D}/etc/
 }
 
 INSANE_SKIP_${PN}:append = "already-stripped"
 FILES:${PN} += "/lib/systemd/system/*"
 
-# Tow files to enable fw_printenv command in userspace
-# /mecha_comet_m_gen1-poky-linux/u-boot-imx/2023.04-r0/build/imx8mm_evk_defconfig/u-boot-initial-env
-# fw_env.config contains values of CONFIG_ENV_SIZE=0x4000
-# 								   CONFIG_ENV_OFFSET=0x700000

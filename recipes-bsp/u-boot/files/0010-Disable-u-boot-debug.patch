@@ -1,0 +1,70 @@
+From a649f54ee69a9f56c1458f24f8d2a73c1efbd802 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Mon, 12 Feb 2024 12:43:06 +0530
+Subject: [PATCH] Disable-u-boot-debug
+
+---
+ drivers/power/fuel_gauge/fg_bq27xxx.c | 38 ++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/power/fuel_gauge/fg_bq27xxx.c b/drivers/power/fuel_gauge/fg_bq27xxx.c
+index 8ca38670c8..6a06ccff21 100644
+--- a/drivers/power/fuel_gauge/fg_bq27xxx.c
++++ b/drivers/power/fuel_gauge/fg_bq27xxx.c
+@@ -468,6 +468,8 @@ int power_fg_init_update(unsigned char bus, struct udevice *i2c_dev)
+ 		printf(":: FG :: FUEL GAUGE NOT CONNECTED \n");
+ 		return -ENODEV;
+ 	}
++
++
+ 	//printf("################################# DATA FROM DRIVER ####################################\n");
+ 	//printf(":: FG :: FUEL GAUGE CHIP ID      	>> 0x%04x \n", bat_crnt_status.chip_id);
+ 	//printf(":: FG :: BATTERY DESIGN CAPACITY 	>> %d mAh \n", bat_crnt_status.d_cap);
+@@ -479,24 +481,28 @@ int power_fg_init_update(unsigned char bus, struct udevice *i2c_dev)
+ 	//printf(":: FG :: Flags				>> 0x%04x \n", bat_crnt_status.flags);	
+ 
+ 	//printf(":: FG :: POWER_SUPPLY_STATUS		>> ");
+-	switch(bat_crnt_status.supply_status)
+-	{
+-		case POWER_SUPPLY_STATUS_CHARGING    : printf(" CHARGING\n");		break;
+-		case POWER_SUPPLY_STATUS_DISCHARGING : printf(" DISCHARGING\n");       break;
+-		case POWER_SUPPLY_STATUS_FULL	     : printf(" FULL\n");       	break;
+-		case POWER_SUPPLY_STATUS_NOT_CHARGING: printf(" NOT_CHARGING\n");      break;
+-		default: printf(" NO_BATTERY\n"); 	break;
+-	}
++
++
++	// switch(bat_crnt_status.supply_status)
++	// {
++	// 	case POWER_SUPPLY_STATUS_CHARGING    : printf(" CHARGING\n");		break;
++	// 	case POWER_SUPPLY_STATUS_DISCHARGING : printf(" DISCHARGING\n");       break;
++	// 	case POWER_SUPPLY_STATUS_FULL	     : printf(" FULL\n");       	break;
++	// 	case POWER_SUPPLY_STATUS_NOT_CHARGING: printf(" NOT_CHARGING\n");      break;
++	// 	default: printf(" NO_BATTERY\n"); 	break;
++	// }
+ 	
+ 	//printf(":: FG :: POWER_SUPPLY_CAPACITY_LEVEL    >> ");
+-	switch(bat_crnt_status.capacity_level)
+-        {
+-               case POWER_SUPPLY_CAPACITY_LEVEL_FULL    : printf(" FULL\n");           break;
+-               case POWER_SUPPLY_CAPACITY_LEVEL_LOW	: printf(" LOW\n");       break;
+-               case POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL: printf(" CRITICAL\n");               break;
+-               case POWER_SUPPLY_CAPACITY_LEVEL_NORMAL  : printf(" NORMAL\n");      break;
+-               default: printf(" NO_BATTERY\n");       break;
+-        }
++
++	// switch(bat_crnt_status.capacity_level)
++    //     {
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_FULL    : printf(" FULL\n");           break;
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_LOW		: printf(" LOW\n");       break;
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL: printf(" CRITICAL\n");               break;
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_NORMAL  : printf(" NORMAL\n");      break;
++    //            default: printf(" NO_BATTERY\n");       break;
++    //     }
++
+ 	//printf("############################### END DATA FROM DRIVER ####################################\n");
+ 
+ 	return 0;
+-- 
+2.25.1
+
