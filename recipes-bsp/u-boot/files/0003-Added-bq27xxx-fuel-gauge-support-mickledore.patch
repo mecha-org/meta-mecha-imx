@@ -1,6 +1,6 @@
-From 6256ff0913e531571524305770f02b60228f3ee2 Mon Sep 17 00:00:00 2001
+From c7cab3c3a3a1b1528401f6a5c01cc51336179643 Mon Sep 17 00:00:00 2001
 From: chiragp-mechas <chiragp@mechasystems.com>
-Date: Wed, 13 Dec 2023 12:56:27 +0530
+Date: Mon, 12 Feb 2024 15:30:45 +0530
 Subject: [PATCH] Added-bq27xxx-fuel-gauge-support-mickledore
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH] Added-bq27xxx-fuel-gauge-support-mickledore
  drivers/power/Makefile                  |   1 +
  drivers/power/fuel_gauge/Kconfig        |  10 +
  drivers/power/fuel_gauge/Makefile       |   7 +
- drivers/power/fuel_gauge/fg_bq27xxx.c   | 504 ++++++++++++++++++++++++
- drivers/power/fuel_gauge/fg_max17042.c  | 287 ++++++++++++++
+ drivers/power/fuel_gauge/fg_bq27xxx.c   | 509 ++++++++++++++++++++++++
+ drivers/power/fuel_gauge/fg_max17042.c  | 287 +++++++++++++
  include/power/bq27xxx_fg.h              | 107 +++++
- 8 files changed, 949 insertions(+)
+ 8 files changed, 954 insertions(+)
  create mode 100644 drivers/power/fuel_gauge/Kconfig
  create mode 100644 drivers/power/fuel_gauge/Makefile
  create mode 100644 drivers/power/fuel_gauge/fg_bq27xxx.c
@@ -36,7 +36,7 @@ index 2e9e91cd78..a4a546c667 100644
  struct tcpc_port port2;
  
 +int power_fg_i2c_init_update(uint8_t i2c_bus, uint8_t addr)
-+{
++{  printf("\nFual-Gauge: Fuel-Gauge Configuration started ... \n");
 +	struct udevice *i2c_dev;
 +	struct udevice *bus;
 +	int ret;
@@ -131,10 +131,10 @@ index 0000000000..c11d6f8ef3
 +obj-$(CONFIG_BQ27XXX) += fg_bq27xxx.o
 diff --git a/drivers/power/fuel_gauge/fg_bq27xxx.c b/drivers/power/fuel_gauge/fg_bq27xxx.c
 new file mode 100644
-index 0000000000..58a2472403
+index 0000000000..05ff12d25a
 --- /dev/null
 +++ b/drivers/power/fuel_gauge/fg_bq27xxx.c
-@@ -0,0 +1,504 @@
+@@ -0,0 +1,509 @@
 +/* Author : Silicon Signals
 +*/
 +
@@ -165,7 +165,7 @@ index 0000000000..58a2472403
 +	
 +	if(retval) 
 +	{
-+		printf(":: FG :: Error -> dm_i2c_write failed @ 0x%04x! %d\n", fg_reg_wr_ctrl_cmd, retval);
++		printf("Fual-Gauge: Error -> dm_i2c_write failed @ 0x%04x! %d\n", fg_reg_wr_ctrl_cmd, retval);
 +		return retval;
 +	}
 +	mdelay(50);
@@ -283,7 +283,7 @@ index 0000000000..58a2472403
 +	read_checksum = fg_buf[0] & 0xff;
 +
 +	if(read_checksum != new_checksum){
-+		printf(":: FG :: Fail to update parameter --> %d\n", data);
++		printf("Fual-Gauge: Fail to update parameter --> %d\n", data);
 +	}
 +
 +	return 0;
@@ -304,14 +304,14 @@ index 0000000000..58a2472403
 +	itpor = ret & BQ27xxx_FLAGS_ITPOR;	
 +	
 +	if(itpor ==0){
-+		printf(":: FG :: No need to update config parameters \n");
++		printf("Fual-Gauge: No need to update config parameters \n");
 +		return -1;
 +	}
 +
 +	flags_lsb = (ret & 0xff);
 +
 +	if(flags_lsb & BQ27xxx_FLAGS_CFGUPMODE) {
-+		printf(":: FG :: Already in config mode\n");
++		printf("Fual-Gauge: Already in config mode\n");
 +		return 0;
 +	}
 +
@@ -331,7 +331,7 @@ index 0000000000..58a2472403
 +			return ret;	
 +	}
 +	else{
-+		printf(":: FG :: Already unsealed\n");
++		//printf("Fual-Gauge: Already unsealed\n");
 +	}
 +	mdelay(20);
 +
@@ -361,7 +361,7 @@ index 0000000000..58a2472403
 +		}	
 +		else
 +		{
-+			printf(":: FG :: Unable to enable CFGUPDATE mode\n");
++			printf("Fual-Gauge: Unable to enable CFGUPDATE mode\n");
 +			return -1; //Timeout Occure
 +		}
 +	}
@@ -369,7 +369,7 @@ index 0000000000..58a2472403
 +	// Enable Block Mode
 +	ret = BQ27xxx_write(BQ27xxx_CONTROL, 0x00, 1);
 +	if(ret <0){
-+		printf(":: FG :: Unable to enable block mode, ret %d\n", ret);
++		printf("Fual-Gauge: Unable to enable block mode, ret %d\n", ret);
 +		return ret;
 +	}
 +
@@ -421,7 +421,7 @@ index 0000000000..58a2472403
 +	
 +	ret = BQ27xxx_readWord(BQ27xxx_FLAGS,2);
 +	if(ret <0){
-+		printf(":: FG :: Enable to read BQ27441_FLAGS\n");
++		printf("Fual-Gauge: Enable to read BQ27441_FLAGS\n");
 +		return ret;
 +	}
 +	
@@ -434,43 +434,43 @@ index 0000000000..58a2472403
 +
 +	ret = is_fg_available();
 +	if(ret <0){
-+		printf(":: FG :: Failed to initialize\n");
++		printf("Fual-Gauge: Failed to initialize\n");
 +		return ret;
 +	}
 +	
 +	ret = config_mode_start();	
 +	if(ret < 0){		
-+		printf(":: FG :: Fail to enter config mode \n");
++		printf("Fual-Gauge: Fail to enter config mode \n");
 +		return ret;
 +	}
 +
 +	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_DCAP, bat->design_capacity, 2);
 +	if(ret <0){		
-+		printf(":: FG :: Fail to set DESIGN CAPACITY \n");
++		printf("Fual-Gauge: Fail to set DESIGN CAPACITY \n");
 +		return ret;
 +	}
 +
 +	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_DESIGN_ENERGY, bat->design_energy, 2);
 +	if(ret <0){
-+		printf(":: FG :: Fail to set DESIGN ENERGY \n");
++		printf("Fual-Gauge: Fail to set DESIGN ENERGY \n");
 +		return ret;
 +	}
 +
 +	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_TERMINATE_VOLTAGE, bat->terminate_voltage, 2);
 +	if(ret <0){
-+		printf(":: FG :: Fail to set TERMINATE VOLTAGE \n");
++		printf("Fual-Gauge: Fail to set TERMINATE VOLTAGE \n");
 +		return ret;	
 +	}
 +
 +	ret = BQ27xxx_extended_write_byte_word(BQ27xxx_ID_STATE, BQ27xxx_TAPER_RATE, bat->taper_rate, 2);
 +	if(ret <0){
-+		printf(":: FG :: Fail to set TAPER RATE \n");
++		printf("Fual-Gauge: Fail to set TAPER RATE \n");
 +		return ret;
 +	}
 +
 +	ret = config_mode_stop();
 +	if(ret <0)
-+		printf(":: FG :: Fail to exit config mode \n");
++		printf("Fual-Gauge: Fail to exit config mode \n");
 +
 +	return 0;	
 +}
@@ -574,7 +574,7 @@ index 0000000000..58a2472403
 +	if(ret <0)
 +		ret =0;
 +	curr =ret;
-+	printk("Current Now : %d\n",curr);
++	// printk("Current Now : %d\n",curr);
 +	if(flags){
 +		battery_crnt_n_status(&curr, &bat_status, &bat_level, flags);
 +
@@ -602,39 +602,44 @@ index 0000000000..58a2472403
 +	configure(&bat_config);
 +
 +	if (power_read_battery_property(&bat_crnt_status) < 0) {
-+		printf(":: FG :: FUEL GAUGE NOT CONNECTED \n");
++		printf("Fual-Gauge: FUEL GAUGE NOT CONNECTED \n");
 +		return -ENODEV;
 +	}
-+	printf("################################# DATA FROM DRIVER ####################################\n");
-+	printf(":: FG :: FUEL GAUGE CHIP ID      	>> 0x%04x \n", bat_crnt_status.chip_id);
-+	printf(":: FG :: BATTERY DESIGN CAPACITY 	>> %d mAh \n", bat_crnt_status.d_cap);
-+	printf(":: FG :: BATTERY STATE OF CHAREG 	>> %d %%  \n", bat_crnt_status.soc);
-+	printf(":: FG :: BATTERY VOLTAGE NOW	 	>> %d mV  \n", bat_crnt_status.volt_now);
-+	printf(":: FG :: BATTERY CURRENT NOW     	>> %d mA  \n", bat_crnt_status.current_now);	
-+	printf(":: FG :: BATTERY FULL CHARGE CAP 	>> %d mAh \n", bat_crnt_status.full_charge_capacity);	
-+	printf(":: FG :: BATTERY NOMINAL AVAILABLE CAP	>> %d mAh \n", bat_crnt_status.nominal_available_capacity);
-+	printf(":: FG :: Flags				>> 0x%04x \n", bat_crnt_status.flags);	
 +
-+	printf(":: FG :: POWER_SUPPLY_STATUS		>> ");
-+	switch(bat_crnt_status.supply_status)
-+	{
-+		case POWER_SUPPLY_STATUS_CHARGING    : printf(" CHARGING\n");		break;
-+		case POWER_SUPPLY_STATUS_DISCHARGING : printf(" DISCHARGING\n");       break;
-+		case POWER_SUPPLY_STATUS_FULL	     : printf(" FULL\n");       	break;
-+		case POWER_SUPPLY_STATUS_NOT_CHARGING: printf(" NOT_CHARGING\n");      break;
-+		default: printf(" NO_BATTERY\n"); 	break;
-+	}
++	//printf("################################# DATA FROM DRIVER ####################################\n");
++	//printf("Fual-Gauge: FUEL GAUGE CHIP ID      	>> 0x%04x \n", bat_crnt_status.chip_id);
++	//printf("Fual-Gauge: BATTERY DESIGN CAPACITY 	>> %d mAh \n", bat_crnt_status.d_cap);
++	//printf("Fual-Gauge: BATTERY STATE OF CHAREG 	>> %d %%  \n", bat_crnt_status.soc);
++	//printf("Fual-Gauge: BATTERY VOLTAGE NOW	 	>> %d mV  \n", bat_crnt_status.volt_now);
++	//printf("Fual-Gauge: BATTERY CURRENT NOW     	>> %d mA  \n", bat_crnt_status.current_now);	
++	//printf("Fual-Gauge: BATTERY FULL CHARGE CAP 	>> %d mAh \n", bat_crnt_status.full_charge_capacity);	
++	//printf("Fual-Gauge: BATTERY NOMINAL AVAILABLE CAP	>> %d mAh \n", bat_crnt_status.nominal_available_capacity);
++	//printf("Fual-Gauge: Flags				>> 0x%04x \n", bat_crnt_status.flags);	
++
++	//printf("Fual-Gauge: POWER_SUPPLY_STATUS		>> ");
++
++	// switch(bat_crnt_status.supply_status)
++	// {
++	// 	case POWER_SUPPLY_STATUS_CHARGING    : printf(" CHARGING\n");		break;
++	// 	case POWER_SUPPLY_STATUS_DISCHARGING : printf(" DISCHARGING\n");       break;
++	// 	case POWER_SUPPLY_STATUS_FULL	     : printf(" FULL\n");       	break;
++	// 	case POWER_SUPPLY_STATUS_NOT_CHARGING: printf(" NOT_CHARGING\n");      break;
++	// 	default: printf(" NO_BATTERY\n"); 	break;
++	// }
 +	
-+	printf(":: FG :: POWER_SUPPLY_CAPACITY_LEVEL    >> ");
-+	switch(bat_crnt_status.capacity_level)
-+        {
-+               case POWER_SUPPLY_CAPACITY_LEVEL_FULL    : printf(" FULL\n");           break;
-+               case POWER_SUPPLY_CAPACITY_LEVEL_LOW	: printf(" LOW\n");       break;
-+               case POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL: printf(" CRITICAL\n");               break;
-+               case POWER_SUPPLY_CAPACITY_LEVEL_NORMAL  : printf(" NORMAL\n");      break;
-+               default: printf(" NO_BATTERY\n");       break;
-+        }
-+	printf("############################### END DATA FROM DRIVER ####################################\n");
++	//printf("Fual-Gauge: POWER_SUPPLY_CAPACITY_LEVEL    >> ");
++
++
++	// switch(bat_crnt_status.capacity_level)
++    //     {
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_FULL    : printf(" FULL\n");           break;
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_LOW	: printf(" LOW\n");       break;
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL: printf(" CRITICAL\n");               break;
++    //            case POWER_SUPPLY_CAPACITY_LEVEL_NORMAL  : printf(" NORMAL\n");      break;
++    //            default: printf(" NO_BATTERY\n");       break;
++    //     }
++
++	//printf("############################### END DATA FROM DRIVER ####################################\n");
 +
 +	return 0;
 +}

@@ -1,0 +1,34 @@
+From 3ab8d63a14bd974793df2b475c94fcf784e5caa3 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Fri, 9 Feb 2024 16:46:41 +0530
+Subject: [PATCH] Add-delay-in-bootanimation
+
+---
+ src/animation.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/animation.cpp b/src/animation.cpp
+index dfdd2f6..df3cbc5 100644
+--- a/src/animation.cpp
++++ b/src/animation.cpp
+@@ -10,7 +10,7 @@
+ #include "zip_archive.hpp"
+ #include "log.hpp"
+ #include "load_png.hpp"
+-
++#include <unistd.h> 
+ 
+ namespace std
+ {
+@@ -204,6 +204,8 @@ display::image_handle animation::get_image_handle_at(animation_position const &p
+ 	{
+ 		LOG_MSG(trace, "retrieved frame at position " << p_animation_position << " from LRU cache");
+ 	}
++	
++	usleep(300000);
+ 
+ 	return *cached_handle;
+ }
+-- 
+2.25.1
+

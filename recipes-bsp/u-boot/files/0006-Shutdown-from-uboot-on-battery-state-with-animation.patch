@@ -1,0 +1,122 @@
+From 0150ef4457c1f86f928b1f30251663be54dfa8d2 Mon Sep 17 00:00:00 2001
+From: chiragp-mechas <chiragp@mechasystems.com>
+Date: Thu, 15 Feb 2024 12:07:15 +0530
+Subject: [PATCH] Shutdown-from-uboot-on-battery-state-with-animation
+
+---
+ board/freescale/imx8mm_evk/imx8mm_evk.c | 72 ++++++++++++++++++++++++-
+ 1 file changed, 70 insertions(+), 2 deletions(-)
+
+diff --git a/board/freescale/imx8mm_evk/imx8mm_evk.c b/board/freescale/imx8mm_evk/imx8mm_evk.c
+index f3b7d14296..a4aee62047 100644
+--- a/board/freescale/imx8mm_evk/imx8mm_evk.c
++++ b/board/freescale/imx8mm_evk/imx8mm_evk.c
+@@ -21,6 +21,10 @@
+ #include "../common/tcpc.h"
+ #include <usb.h>
+ #include <power/bq27xxx_fg.h>
++#include <imx_sip.h>
++#include <linux/arm-smccc.h>
++#include <splash.h>
++#define DEVICE_SHUTDOWN_BATTERY_PERCENT 5
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
+@@ -168,7 +172,7 @@ int power_fg_i2c_init_update(uint8_t i2c_bus, uint8_t addr)
+ 	}
+ 	power_fg_init_update(i2c_bus, i2c_dev);
+ 
+-	return 0;
++	return power_fg_init_update(i2c_bus, i2c_dev);
+ }
+ 
+ static int setup_pd_switch(uint8_t i2c_bus, uint8_t addr)
+@@ -341,8 +345,13 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
+ 
+ #endif
+ 
++#define DISPMIX				9
++#define MIPI				10
++bool is_battery_low = false;
++
+ int board_init(void)
+ {
++
+ #ifdef CONFIG_USB_TCPC
+ 	setup_typec();
+ #endif
+@@ -355,11 +364,70 @@ int board_init(void)
+ 
+ int board_late_init(void)
+ {
++		struct arm_smccc_res res;
++
++		if (!(power_fg_i2c_init_update(2, 0x55) < 0)) {
++			bq27xxx_battery *bat;
++			power_read_battery_property(bat);
++			// printf("battery : percentage %d\n", bat->soc);
++			if (bat->soc < DEVICE_SHUTDOWN_BATTERY_PERCENT && bat->supply_status != POWER_SUPPLY_STATUS_CHARGING) {
++				is_battery_low = true;
++				printf("battery: lower then 5 percentage and charger is not connected\n");
++				arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN, DISPMIX, true, 0, 0, 0, 0, &res);
++				arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN, MIPI, true, 0, 0, 0, 0, &res);
++			} else {
++				arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN, DISPMIX, true, 0, 0, 0, 0, &res);
++				arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN, MIPI, false, 0, 0, 0, 0, &res);
++			}
++		} 
++		else {
++			arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN, DISPMIX, true, 0, 0, 0, 0, &res);
++			arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN, MIPI, false, 0, 0, 0, 0, &res);
++		} 
++	
++	printf("\n");
++
++	if (is_battery_low) 
++		{ 
++
++		int i;
++		run_command("mmc dev 2", 0); run_command("mmc rescan", 0);
++		for (i=0;i<3;i++) {
++		run_command("load mmc 2 ${loadaddr} low-bat1.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0);
++		mdelay(500);
++		run_command("load mmc 2 ${loadaddr} low-bat2.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0);
++		mdelay(500);
++		run_command("load mmc 2 ${loadaddr} low-bat3.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0);
++		mdelay(500);
++		run_command("load mmc 2 ${loadaddr} low-bat4.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0);
++		mdelay(500);
++		run_command("load mmc 2 ${loadaddr} low-bat5.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0);
++		mdelay(500);
++		run_command("load mmc 2 ${loadaddr} low-bat6.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0); }
++		mdelay(500);
++		printf("powering down in 5 seconds\n");
++		mdelay(3000);
++		memset(0x30370038, 0x60, 1);
++
++
++	} 
++	else {
++		run_command("mmc dev 2", 0); 
++		run_command("mmc rescan", 0);
++		run_command("load mmc 2 ${loadaddr} logo.bmp", 0);
++		run_command("bmp display ${loadaddr}", 0);
++		}
++
+ #ifdef CONFIG_ENV_IS_IN_MMC
+ 	board_late_mmc_env_init();
+ #endif
+ 
+-	power_fg_i2c_init_update(2, 0x55);
+ 	if (IS_ENABLED(CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG)) {
+ 		env_set("board_name", "EVK");
+ 		env_set("board_rev", "iMX8MM");
+-- 
+2.25.1
+
