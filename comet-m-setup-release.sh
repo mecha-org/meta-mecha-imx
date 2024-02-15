@@ -193,14 +193,18 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-mecha-imx\"" >> $BUILD_DIR/conf/bbla
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-mecha\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "" >> $BUILD_DIR/conf/bblayers.conf
 
-# Enable docker for mx8 machines
+# Additional layers
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-arm/meta-arm\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-arm/meta-arm-toolchain\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-virtualization\"" >> conf/bblayers.conf
-echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rust\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-clang\"" >> $BUILD_DIR/conf/bblayers.conf
-echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-webkit\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-rust-bin\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-browser/meta-chromium\"" >> $BUILD_DIR/conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-rust-bin\"" >> conf/bblayers.conf
+echo "BBLAYERS += \"\${BSPDIR}/sources/meta-security\"" >> conf/bblayers.conf
+echo "" >> $BUILD_DIR/conf/bblayers.conf
+echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rust\"" >> conf/bblayers.conf
+echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-webkit\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-qt6\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rauc\"" >> $BUILD_DIR/conf/bblayers.conf
 
