@@ -200,7 +200,6 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-virtualization\"" >> conf/bblayers.c
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-clang\"" >> $BUILD_DIR/conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-rust-bin\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-browser/meta-chromium\"" >> $BUILD_DIR/conf/bblayers.conf
-echo "BBLAYERS += \"\${BSPDIR}/sources/meta-rust-bin\"" >> conf/bblayers.conf
 echo "BBLAYERS += \"\${BSPDIR}/sources/meta-security\"" >> conf/bblayers.conf
 echo "" >> $BUILD_DIR/conf/bblayers.conf
 echo "#BBLAYERS += \"\${BSPDIR}/sources/meta-rust\"" >> conf/bblayers.conf
