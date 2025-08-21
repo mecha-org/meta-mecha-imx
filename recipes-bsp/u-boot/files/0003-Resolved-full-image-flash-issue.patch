@@ -1,0 +1,26 @@
+From a64aa24036aaeb037c4ec5932996148a03ed12a1 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Sat, 2 Aug 2025 18:31:48 +0530
+Subject: [PATCH] Resolved full image flash issue.
+
+TCPC was causing issue in flashing wic image
+Disabling TCPC resloved the issue
+
+Signed-off-by: Hiren Vadukul <hirenv@ext.mechasystems.com>
+
+diff --git a/board/freescale/imx8mp_evk/imx8mp_evk.c b/board/freescale/imx8mp_evk/imx8mp_evk.c
+index ad546a6554a..cb52dcf4c12 100644
+--- a/board/freescale/imx8mp_evk/imx8mp_evk.c
++++ b/board/freescale/imx8mp_evk/imx8mp_evk.c
+@@ -30,6 +30,8 @@
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
++#undef CONFIG_USB_TCPC
++
+ #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)
+ #define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+ 
+-- 
+2.25.1
+

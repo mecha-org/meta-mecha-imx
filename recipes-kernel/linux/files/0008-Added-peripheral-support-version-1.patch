@@ -1,0 +1,357 @@
+From 13c415c0a74aced2cb6855ddb4bb0769f30e2dd5 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Wed, 6 Aug 2025 20:30:26 +0530
+Subject: [PATCH] Added peripheral support version 1
+
+This patch adds support for the peripherals listed
+here and their status
+
+- MIPI Display	: Working
+- Touch		: Working
+- Camera	: In Progress
+- Codec		: In Progress
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index b2e3a5b4aa09..ee2b2751222a 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -55,6 +55,68 @@ reg_usdhc2_vqmmc: regulator-usdhc2-vqmmc {
+ 			 1800000 1>;
+ 	};
+ 
++	sound-max98090 {
++	        compatible = "simple-audio-card";
++	        simple-audio-card,name = "max98090-audio";
++	        simple-audio-card,format = "i2s";
++	        simple-audio-card,frame-master = <&cpudai>;
++	        simple-audio-card,bitclock-master = <&cpudai>;
++	        simple-audio-card,bitclock-inversion;
++
++	        simple-audio-card,widgets =
++	                "Microphone", "Mic Jack",
++	                "Speakers", "Speakers",
++	                "Line", "Line In",
++	                "Line", "Line Out",
++	                "Headphone", "Headphone Jack";
++
++	        simple-audio-card,routing =
++	                "Headphone Jack", "HPL",
++	                "Headphone Jack", "HPR",
++	                "Line Out", "RCVL",
++	                "Line Out", "RCVR",
++	        /* Uncomment any of these below lines if the Line Input(s) is(are) used else leave it as such. */
++	                "IN1","Line In",
++	                "IN2","Line In",
++	                "IN5", "Line In",  /* IN1/IN2/IN3/IN4/IN6 (For single-ended input) */
++	                "IN34", "Line In", /* IN34 (For differential inputs) */
++	                "IN56", "Line In", /* IN34 (For differential inputs) */
++	                "MIC1", "Mic Jack",
++	                "MIC2", "Mic Jack",
++	                "Mic Jack", "MICBIAS",
++	                "IN1", "MICBIAS",
++	                "MIC1","IN1",
++	                "MIC2","IN1",
++	                "Speakers", "SPKL",
++	                "Speakers", "SPKR",
++
++	                /* DMIC-3 Routings */
++	                "DMICL", "DMIC Mux",
++	                "DMIC Mux", "DMIC3",
++	                "DMIC3", "DMIC3_ENA",
++	                "DMIC3", "AHPF",
++
++	                /* DMIC-4 Routings */
++	                "DMICR", "DMIC Mux",
++	                "DMIC Mux", "DMIC4",
++	                "DMIC4", "DMIC4_ENA",
++	                "DMIC3", "AHPF",
++	                "DMIC4", "AHPF",
++
++	                "HiFi Capture", "DMICL",
++	                "HiFi Capture", "DMICR";
++
++	        cpudai: simple-audio-card,cpu {
++	                sound-dai = <&sai3>;
++	                dai-tdm-slot-num = <2>;
++	                dai-tdm-slot-width = <32>;
++	        };
++
++	        simple-audio-card,codec {
++	                sound-dai = <&max98090>;
++	                clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIOMIX_SAI1_MCLK1>;
++	        };
++	};
+ };
+ 
+ &A53_0 {
+@@ -180,6 +242,21 @@ &i2c2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++	touchctl: focaltech@38 {
++		compatible = "focaltech,fts";
++		reg = <0x38>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_touch_i2c>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
++		focaltech,reset-gpio = <&gpio4 4 GPIO_ACTIVE_HIGH>;
++		focaltech,irq-gpio = <&gpio4 5 GPIO_ACTIVE_LOW>;
++		focaltech,max-touch-number = <5>;
++		focaltech,display-coords = <0 0 1079 1239>;
++		status = "okay";
++	};
++
+ };
+ 
+ &i2c3 {
+@@ -187,6 +264,79 @@ &i2c3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c3>;
+ 	status = "okay";
++
++	imx219: imx219@10 {
++	        compatible = "sony,imx219";
++	        reg = <0x10>;
++	        pinctrl-names = "default";
++	        pinctrl-0 = <&pinctrl_gpio_mclk>,<&pinctrl_gpio5>;
++	        clock-names = "xclk";
++	        clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
++	        assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
++	        assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
++	        assigned-clock-rates = <24000000>;
++	        mclk = <24000000>;
++	        mclk_source = <0>;
++	        csi_id=<0>;
++
++	        pwn-gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
++	        rst-gpios = <&gpio3 14 GPIO_ACTIVE_LOW>;
++
++	        port {
++	            imx219_to_mipi_csi2: endpoint {
++	                remote-endpoint = <&mipi_csi_1_in>;
++	                clock-lanes = <0>;
++	                data-lanes = <1 2>;
++	                //clock-noncontinuous;
++	                link-frequencies = /bits/ 64 <456000000>;
++                        //csis-hs-settle = <13>;
++                        //csis-clk-settle = <2>;
++                        //csis-wclk;
++	            };
++	       };
++	};
++};
++
++&cameradev {
++       status = "okay";
++};
++
++&mipi_csi_0 {
++       #address-cells = <1>;
++       #size-cells = <0>;
++       status = "okay";
++       port@0 {
++               reg = <0>;
++               mipi_csi_1_in: endpoint {
++                       remote-endpoint = <&imx219_to_mipi_csi2>;
++                       data-lanes = <1 2>;
++	               clock-lanes = <0>;
++			//clock-noncontinuous;
++			//csis-hs-settle = <13>;
++			//csis-clk-settle = <2>;
++                       //csis-wclk;
++               };
++       };
++};
++
++&isp_0 {
++       status = "okay";
++};
++
++&isi_0 {
++       status = "disabled";
++};
++
++&isi_1 {
++       status = "disabled";
++};
++
++&dewarp {
++       status = "okay";
++};
++
++&sdma2 {
++       status = "okay";
+ };
+ 
+ &i2c4 {
+@@ -194,6 +344,19 @@ &i2c4 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c4>;
+ 	status = "okay";
++//	clock-frequency = <10000>;
++
++	max98090: max98090@10 {
++	        #sound-dai-cells = <0>;
++	        pinctrl-names = "default";
++	        pinctrl-0 = <&pinctrl_sai3>;
++	        compatible = "maxim,max98091";
++	        reg = <0x10>;
++	        clocks = <&clk IMX8MP_CLK_SAI1_ROOT>;
++	        interrupt-parent = <&gpio1>;
++	        interrupts = <8 IRQ_TYPE_LEVEL_HIGH>; /* SODIMM_218 */
++	        clock-names = "mclk";
++	};
+ };
+ 
+ &i2c5 {
+@@ -260,6 +423,7 @@ &sai2 {
+ };
+ 
+ &sai3 {
++	#sound-dai-cells = <0>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_sai3>;
+ 	assigned-clocks = <&clk IMX8MP_CLK_SAI3>;
+@@ -360,40 +524,79 @@ &mipi_dsi {
+ 	samsung,esc-clock-frequency = <16000000>;
+ 	status = "okay";
+ 
+-//	port {
+-//		dsi_out: endpoint {
+-//			remote-endpoint = <&panel_in>;
+-//		};
+-//	};
+-//
+-//	panel@0 {
+-//		compatible = "ch13726a,rp5";
+-//		reg = <0>;
+-//		pinctrl-0 = <&pinctrl_mipi_gpio>;
+-//		reset-gpios = <&gpio4 9 GPIO_ACTIVE_HIGH>;
+-//		orientation = <0>;
+-//		rotation = <270>;
+-//		dsi-lanes = <4>;
+-//		video-mode = <0>;
+-//		vdd1v2-supply = <&reg_vdd1v2>;
+-//		vddio-supply = <&reg_1p8v>;
+-//		vdd-supply = <&reg_3p3v>;
+-//		avdd-supply = <&vdda_panel>;
+-//		status = "okay";
+-//
+-//		port {
+-//			panel_in: endpoint {
+-//				remote-endpoint = <&dsi_out>;
+-//	  		};
+-//
+-//		};
+-//	};
++	port {
++		dsi_out: endpoint {
++			remote-endpoint = <&panel_in>;
++		};
++	};
++
++	panel@0 {
++		compatible = "ch13726a,rp5";
++		reg = <0>;
++		pinctrl-0 = <&pinctrl_mipi_gpio>;
++		reset-gpios = <&gpio4 9 GPIO_ACTIVE_HIGH>;
++		orientation = <0>;
++		rotation = <270>;
++		dsi-lanes = <4>;
++		video-mode = <0>;
++		status = "okay";
++
++		port {
++			panel_in: endpoint {
++				remote-endpoint = <&dsi_out>;
++			};
++
++		};
++	};
++};
++
++&gpu_2d {
++	status = "okay";
++};
++
++&gpu_3d {
++	status = "okay";
++};
++
++&ml_vipsi {
++	status = "okay";
++};
++
++&mix_gpu_ml {
++	status = "okay";
++};
++
++&vpu_g1 {
++	status = "okay";
++};
++
++&vpu_g2 {
++	status = "okay";
++};
++
++&vpu_vc8000e {
++	status = "okay";
++};
++
++&vpu_v4l2 {
++	status = "okay";
+ };
+ 
+ &iomuxc {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hog>;
+ 
++	pinctrl_gpio_mclk: gpiomclkgrp {
++	        fsl,pins =
++	                /* CSI_1_MCLK */
++	                <MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1             0x1c4>;
++	};
++
++	pinctrl_gpio5: gpio5grp {
++	        fsl,pins =
++	                <MX8MP_IOMUXC_NAND_ALE__GPIO3_IO00            0x184>;
++	};
++
+ 	pinctrl_hog: hoggrp {
+ 		fsl,pins = <
+ 			MX8MP_IOMUXC_HDMI_DDC_SCL__HDMIMIX_HDMI_SCL     0x400001c2
+@@ -501,11 +704,11 @@ MX8MP_IOMUXC_SAI2_TXD0__AUDIOMIX_SAI2_TX_DATA00	0x1d6
+ 
+ 	pinctrl_sai3: sai3grp {
+ 		fsl,pins = <
+-			MX8MP_IOMUXC_SAI3_MCLK__AUDIOMIX_SAI3_MCLK	0x1d6
+ 			MX8MP_IOMUXC_SAI3_TXC__AUDIOMIX_SAI3_TX_BCLK	0x1d6
+-			MX8MP_IOMUXC_SAI3_TXFS__AUDIOMIX_SAI3_TX_SYNC	0x1d6
+-			MX8MP_IOMUXC_SAI3_RXD__AUDIOMIX_SAI3_RX_DATA00	0x1d6
++			MX8MP_IOMUXC_SAI3_TXFS__AUDIOMIX_SAI3_TX_DATA01	0x1d6
++			MX8MP_IOMUXC_SAI3_MCLK__AUDIOMIX_SAI3_MCLK	0x1d6
+ 			MX8MP_IOMUXC_SAI3_TXD__AUDIOMIX_SAI3_TX_DATA00	0x1d6
++			MX8MP_IOMUXC_SAI3_RXD__AUDIOMIX_SAI3_RX_DATA00	0x1d6
+ 		>;
+ 	};
+ 
+@@ -690,4 +893,12 @@ pinctrl_mipi_gpio: mipigpiogrp {
+ 			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x184
+ 		>;
+ 	};
++
++	pinctrl_touch_i2c: touchgrp {
++		fsl,pins = <
++			MX8MP_IOMUXC_SAI1_RXD2__GPIO4_IO04		0x184
++			MX8MP_IOMUXC_SAI1_RXD3__GPIO4_IO05		0x184
++		>;
++	};
++
+ };
+-- 
+2.25.1
+

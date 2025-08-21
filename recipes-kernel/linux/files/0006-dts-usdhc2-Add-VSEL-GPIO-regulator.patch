@@ -1,0 +1,50 @@
+From e3b55e2cf06cb5788106dd2f5cc3079eb35c18eb Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Wed, 2 Jul 2025 18:40:06 +0530
+Subject: [PATCH] dts: usdhc2: Add VSEL GPIO regulator
+
+This adds a GPIO-controlled VSEL regulator for switching
+SD/MMC I/O voltage between 1.8V and 3.3V on USDHC2.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index ff11aa9cbff8..b4cc198aefb5 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -44,6 +44,16 @@ reg_usdhc2_vmmc: regulator-usdhc2 {
+ 		enable-active-high;
+ 	};
+ 
++	reg_usdhc2_vqmmc: regulator-usdhc2-vqmmc {
++		compatible = "regulator-gpio";
++		regulator-name = "VSD_VSEL";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio1 4 GPIO_ACTIVE_HIGH>;
++		gpios-states = <1>;
++		states = <3300000 0
++			 1800000 1>;
++	};
+ 
+ };
+ 
+@@ -294,6 +304,7 @@ &usdhc2 {
+ 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
+ 	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
+ 	vmmc-supply = <&reg_usdhc2_vmmc>;
++	vqmmc-supply = <&reg_usdhc2_vqmmc>;
+ 	bus-width = <4>;
+ 	status = "okay";
+ };
+@@ -613,6 +624,7 @@ MX8MP_IOMUXC_GPIO1_IO04__USDHC2_VSELECT		0x4
+ 	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
+ 		fsl,pins = <
+ 			MX8MP_IOMUXC_SD2_CD_B__GPIO2_IO12		0x1c4
++			MX8MP_IOMUXC_GPIO1_IO04__GPIO1_IO04		0x10 /* PMIC_USDHC_VSELECT */
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+
