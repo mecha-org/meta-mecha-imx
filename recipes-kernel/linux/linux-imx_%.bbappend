@@ -12,6 +12,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0008-Added-peripheral-support-version-1.patch \
 		   file://0009-Added-fsl-sai-configuration-support.patch \
 		   file://0010-Camera-Audiocodec-wifi-BT-and-SD-card-changes.patch \
+		   file://0011-Added-power-button-support.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \

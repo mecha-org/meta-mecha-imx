@@ -1,0 +1,33 @@
+From 23e131f207c8531104893f30c44bd52efca45b76 Mon Sep 17 00:00:00 2001
+From: Hiren Vadukul <hirenv@ext.mechasystems.com>
+Date: Fri, 22 Aug 2025 13:39:18 +0530
+Subject: [PATCH] Added power button support
+
+Signed-off-by: Hiren Vadukul <hirenv@ext.mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index e19b4ee33038..ce37bba90b11 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -399,6 +399,7 @@ &uart3 { /* BT UART */
+ 	assigned-clocks = <&clk IMX8MP_CLK_UART3>;
+ 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
+ 	uart-has-rtscts;
++
+ 	status = "okay";
+ 	
+ 	bluetooth {
+@@ -581,6 +582,10 @@ &vpu_v4l2 {
+ 	status = "okay";
+ };
+ 
++&snvs_pwrkey {
++        status = "okay";
++};
++
+ &iomuxc {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hog>;
+-- 
+2.25.1
+
