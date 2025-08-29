@@ -1,0 +1,63 @@
+From b0e564168116f36cdc2501396ae5de21a897c5d7 Mon Sep 17 00:00:00 2001
+From: Hiren Vadukul <hirenv@ext.mechasystems.com>
+Date: Thu, 28 Aug 2025 10:15:01 +0530
+Subject: [PATCH] Added USB connector nodes
+
+Signed-off-by: Hiren Vadukul <hirenv@ext.mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index c225316f0ebd..9f6c153dac24 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -129,7 +129,48 @@ reg_wifi_en: regulator-wifi-en {
+ 		 regulator-name = "PDn_AW-CM276NF";
+ 		 startup-delay-us = <2000>;
+ 	};
++};
++
++&usb3_0 {
++        status = "okay";
++};
++
++&usb3_phy0 {
++        status = "okay";
++};
++
++&usb_dwc3_0 {
++        status = "okay";
++	dr_mode = "dual";
++
++	connector {
++		compatible = "usb-c-connector";
++		label = "Type-C";
++		type = "mini";
++		power-role = "dual";
++		data-role = "dual";
++	};
++};
++
++&usb3_phy1 {
++        status = "okay";
++};
+ 
++&usb3_1 {
++        status = "okay";
++};
++
++&usb_dwc3_1 {
++        status = "okay";
++	dr_mode = "host";
++	maximum-speed = "high-speed";
++	connector {
++		compatible = "usb-c-connector";
++		label = "Type-C";
++		type = "mini";
++		power-role = "host";
++		data-role = "host";
++	};
+ };
+ 
+ &irqsteer_hdmi {
+-- 
+2.25.1
+

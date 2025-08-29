@@ -1,0 +1,56 @@
+From 15657c7b2e8afa95d605a5e43a3589a3ad8dc3bb Mon Sep 17 00:00:00 2001
+From: Hiren Vadukul <hirenv@ext.mechasystems.com>
+Date: Mon, 25 Aug 2025 11:55:23 +0530
+Subject: [PATCH] Added HDMI Support
+
+Signed-off-by: Hiren Vadukul <hirenv@ext.mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index ce37bba90b11..c225316f0ebd 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -132,6 +132,41 @@ reg_wifi_en: regulator-wifi-en {
+ 
+ };
+ 
++&irqsteer_hdmi {
++        status = "okay";
++};
++
++&hdmi_blk_ctrl {
++        status = "okay";
++};
++
++&hdmi_pavi {
++        status = "okay";
++};
++
++&hdmi {
++        status = "okay";
++};
++
++&hdmiphy {
++        status = "okay";
++};
++
++&lcdif1 {
++        status = "okay";
++};
++
++&lcdif2 {
++        status = "okay";
++};
++
++&lcdif3 {
++        status = "okay";
++
++        thres-low  = <1 2>;             /* (FIFO * 1 / 2) */
++        thres-high = <3 4>;             /* (FIFO * 3 / 4) */
++};
++
+ &A53_0 {
+         cpu-supply = <&buck2>;
+ };
+-- 
+2.25.1
+
