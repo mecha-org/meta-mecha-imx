@@ -14,9 +14,6 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0010-Camera-Audiocodec-wifi-BT-and-SD-card-changes.patch \
 		   file://0011-Added-power-button-support.patch \
 		   file://0012-Added-HDMI-Support.patch \
-		   file://0013-Added-USB-connector-nodes.patch \
-		   file://0014-Added-the-PD-driver-TPS25750.patch \
-		   file://0015-Added-the-expander-node-enable-the-haptic-motor.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
