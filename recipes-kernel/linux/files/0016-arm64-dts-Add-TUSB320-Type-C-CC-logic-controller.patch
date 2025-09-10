@@ -1,0 +1,88 @@
+From 9d15749eba6c2a65a36554377a81810ff5a83ed6 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 8 Sep 2025 15:06:12 +0530
+Subject: [PATCH 2/3] arm64: dts: Add TUSB320 Type-C CC logic controller
+
+This patch adds the device tree nodes for the
+TUSB320 USB Type-C controller with CC handling
+and MUX switching support for the USB-2 interface
+with SuperSpeed Capabilities.
+
+Signed-off-by:  Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 60236cdc387e..b52105896566 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -129,6 +129,19 @@ reg_wifi_en: regulator-wifi-en {
+ 		 regulator-name = "PDn_AW-CM276NF";
+ 		 startup-delay-us = <2000>;
+ 	};
++
++	ptn36043 {
++		compatible = "nxp,ptn36043";
++		pinctrl-names = "default";
++		switch-gpios = <&pca9535 8 GPIO_ACTIVE_LOW>;
++		orientation-switch;
++
++		port {
++			usb3_data_ss: endpoint {
++				remote-endpoint = <&typec_con_ss>;
++			};
++		};
++	};
+ };
+ 
+ &usb3_0 {
+@@ -364,6 +377,36 @@ imx219_to_mipi_csi2: endpoint {
+ 			};
+ 		};
+ 	};
++
++	tusb320: tusb320@61 {
++		compatible = "ti,tusb320";
++		reg = <0x61>;
++		pinctrl-0 = <&pinctrl_tusb>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		vbus-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
++		status = "okay";
++
++		connector {
++			compatible = "usb-c-connector";
++			label = "USB-C-Port1";
++			data-role = "dual";
++			power-role = "dual";
++			typec-power-opmode = "default";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@1 {
++					reg = <1>;
++					typec_con_ss: endpoint {
++						remote-endpoint = <&usb3_data_ss>;
++					};
++				};
++			};
++		};
++	};
+ };
+ 
+ &cameradev {
+@@ -999,4 +1042,11 @@ MX8MP_IOMUXC_SAI1_RXD2__GPIO4_IO04		0x184
+ 			MX8MP_IOMUXC_SAI1_RXD3__GPIO4_IO05		0x184
+ 		>;
+ 	};
++
++	pinctrl_tusb: tusbgrp {
++		fsl,pins = <
++			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x184
++			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20			0x184
++		>;
++	};
+ };
+-- 
+2.25.1
+
