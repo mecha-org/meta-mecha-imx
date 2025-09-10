@@ -1,0 +1,58 @@
+From fadf51c504d550eec267989e0648d1892050e721 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 8 Sep 2025 15:25:40 +0530
+Subject: [PATCH 3/3] dts: arm64: Add TPS25751 USB PD controller
+
+This patch adds the support for TPS25751 USB PD controller
+for USB-PWR interface. The PD controller supports Source
+/ Sink and data transfer capability at 2.0 (High Speed)
+Speed.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index b52105896566..93d769f2ecb1 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -474,6 +474,27 @@ &i2c5 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c5>;
+ 	status = "okay";
++
++	/* PD controller for USB_PWR */
++	tps25751: typec@21 {
++		compatible = "ti,tps25750";
++		reg = <0x21>, <0x0f>;
++		reg-names = "main", "patch-address";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_typec>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		interrupt-names = "irq";
++		firmware-name = "tps25751.bin";
++
++		connector {
++			compatible = "usb-c-connector";
++			label = "USB-C";
++			self-powered;
++			data-role = "dual";
++			power-role = "dual";
++		};
++	};
+ };
+ 
+ &i2c6 {
+@@ -1049,4 +1070,10 @@ MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x184
+ 			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20			0x184
+ 		>;
+ 	};
++
++	pinctrl_typec: typec1grp {
++		fsl,pins = <
++			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x1c4
++		>;
++	};
+ };
+-- 
+2.25.1
+
