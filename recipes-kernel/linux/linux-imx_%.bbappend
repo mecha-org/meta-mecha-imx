@@ -19,15 +19,20 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0015-arm64-dts-added-usb-node-and-pca9535-IO-expander.patch \
 		   file://0016-arm64-dts-Add-TUSB320-Type-C-CC-logic-controller.patch \
 		   file://0017-dts-arm64-Add-TPS25751-USB-PD-controller.patch \
+		   file://0018-usb-typec-Add-driver-for-TPS25751-PD-for-USB-1.patch \
+		   file://0019-usb-typec-Makefile-added-tps25751-driver.patch \
+		   file://0020-arm64-dts-added-support-for-USB-1-PD.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
 		   file://tps25751.bin \
+		   file://tps25751-v1.bin \
 		"
 
 do_configure:prepend() {
 	install -d ${S}/drivers/usb/typec/
 	install -m 0644 ${WORKDIR}/tps25751.bin ${S}/drivers/usb/typec/
+	install -m 0644 ${WORKDIR}/tps25751-v1.bin ${S}/drivers/usb/typec/
 }
 
 DELTA_KERNEL_DEFCONFIG:prepend = " config.cfg \

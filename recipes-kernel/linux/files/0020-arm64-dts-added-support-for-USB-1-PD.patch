@@ -1,0 +1,77 @@
+From bc02e55de2d6ca04f8ff18d8f1cb4c0bbd84b3fb Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Wed, 10 Sep 2025 17:15:31 +0530
+Subject: [PATCH] arm64: dts: added support for USB-1 PD
+
+- Adds dts entry for USB-1 PD controller.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index e18e1df3c608..7e3c0dfb8cca 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -154,7 +154,14 @@ &usb3_phy0 {
+ 
+ &usb_dwc3_0 {
+         status = "okay";
+-	dr_mode = "otg";
++	dr_mode = "dual";
++	usb-role-switch;
++
++	port {
++		usb0_ss_ep: endpoint {
++			remote-endpoint = <&usb_con_ss>;
++		};
++	};
+ };
+ 
+ &usb3_phy1 {
+@@ -467,6 +474,33 @@ max98090: max98090@10 {
+ 	        interrupts = <8 IRQ_TYPE_LEVEL_LOW>; /* SODIMM_218 */
+ 	        clock-names = "mclk";
+ 	};
++
++	pd_tps25751_1: typec_1@21 {
++		compatible = "ti,tps25751";
++		reg = <0x21>, <0x0f>;
++		reg-names = "main", "patch-address";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_typec_0>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
++		interrupt-names = "irq";
++		firmware-name = "tps25751-v1.bin";
++		status = "okay";
++
++		connector {
++			compatible = "usb-c-connector";
++			label = "USB-C-Port2";
++			self-powered;
++			data-role = "dual";
++			power-role = "dual";
++
++			port {
++				usb_con_ss: endpoint {
++					remote-endpoint = <&usb0_ss_ep>;
++				};
++			};
++		};
++	};
+ };
+ 
+ &i2c5 {
+@@ -1076,4 +1110,10 @@ pinctrl_typec: typec1grp {
+ 			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x1c4
+ 		>;
+ 	};
++
++	pinctrl_typec_0: typec2grp {
++		fsl,pins = <
++			MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x1c4
++		>;
++	};
+ };
+-- 
+2.25.1
+
