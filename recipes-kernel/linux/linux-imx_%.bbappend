@@ -22,6 +22,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0018-usb-typec-Add-driver-for-TPS25751-PD-for-USB-1.patch \
 		   file://0019-usb-typec-Makefile-added-tps25751-driver.patch \
 		   file://0020-arm64-dts-added-support-for-USB-1-PD.patch \
+		   file://0021-gpio-keys-Add-keypad-slide-switch-event-support.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
