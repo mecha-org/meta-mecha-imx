@@ -1,0 +1,44 @@
+From 22dc005013bfd663b49850823e69501ef18103eb Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Thu, 11 Sep 2025 22:58:23 +0530
+Subject: [PATCH] feat: support for imu accel and gyro sensor
+
+This patch adds support for imu accel and gyro
+sensor driver.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index f03108bfc801..08c8b375bc91 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -425,6 +425,15 @@ typec_con_ss: endpoint {
+ 			};
+ 		};
+ 	};
++
++	imu: icm42605@69 {
++		compatible = "invensense,icm42605";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_imu_gpio>;
++		reg = <0x69>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <22 IRQ_TYPE_EDGE_FALLING>;
++	};
+ };
+ 
+ &cameradev {
+@@ -1127,4 +1136,10 @@ pinctrl_typec_0: typec2grp {
+ 			MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x1c4
+ 		>;
+ 	};
++
++	pinctrl_imu_gpio: imugrp {
++		fsl,pins = <
++			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x1c4
++		>;
++	};
+ };
+-- 
+2.25.1
+
