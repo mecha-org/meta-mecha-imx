@@ -25,6 +25,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0021-gpio-keys-Add-keypad-slide-switch-event-support.patch \
 		   file://0022-feat-support-for-imu-accel-and-gyro-sensor.patch \
 		   file://0023-feat-Bring-up-PCIe-interface.patch \
+		   file://0024-fix-LTE-module-detection-issue.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
