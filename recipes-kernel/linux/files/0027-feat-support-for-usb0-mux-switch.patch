@@ -1,0 +1,63 @@
+From ab742c4c1a767f8cfa8355e20b77f43d13f71dc4 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 23 Sep 2025 12:51:20 +0530
+Subject: [PATCH 5/5] feat: support for usb0 mux switch
+
+This patch adds support for SS mux switching
+on USB0 interface.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 4677ff79fc62..3d53541c4ad0 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -143,6 +143,19 @@ usb3_data_ss: endpoint {
+ 		};
+ 	};
+ 
++	ptn36043_1 {
++		compatible = "nxp,ptn36043";
++		pinctrl-names = "default";
++		switch-gpios = <&pca9535 6 GPIO_ACTIVE_LOW>;
++		orientation-switch;
++
++		port {
++			usb0_sw_ep: endpoint {
++				remote-endpoint = <&usb0_sw_ss>;
++			};
++		};
++	};
++
+ 	Comet-Extension {
+ 		compatible = "gpio-keys";
+ 
+@@ -522,9 +535,22 @@ connector {
+ 			data-role = "dual";
+ 			power-role = "dual";
+ 
+-			port {
+-				usb_con_ss: endpoint {
+-					remote-endpoint = <&usb0_ss_ep>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@0 {
++					reg = <0>;
++					usb_con_ss: endpoint {
++						remote-endpoint = <&usb0_ss_ep>;
++					};
++				};
++
++				port@1 {
++					reg = <1>;
++					usb0_sw_ss: endpoint {
++						remote-endpoint = <&usb0_sw_ep>;
++					};
+ 				};
+ 			};
+ 		};
+-- 
+2.25.1
+
