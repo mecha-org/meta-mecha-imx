@@ -1,0 +1,49 @@
+From d762d1c4de4a5e7c5ad1e2075fd3534db74786ee Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Wed, 3 Sep 2025 21:20:20 +0530
+Subject: [PATCH] Fixed memory overflow error
+
+This patch fixed the stack overflow error due to
+wrong memory node configured.This fixes the memory
+from 6GB to 4GB
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm/dts/imx8mp-evk.dts b/arch/arm/dts/imx8mp-evk.dts
+index dcf80d16fd7..a0e389f7230 100644
+--- a/arch/arm/dts/imx8mp-evk.dts
++++ b/arch/arm/dts/imx8mp-evk.dts
+@@ -32,7 +32,7 @@
+ 	memory@40000000 {
+ 		device_type = "memory";
+ 		reg = <0x0 0x40000000 0 0xc0000000>,
+-		      <0x1 0x00000000 0 0xc0000000>;
++		      <0x1 0x00000000 0 0x40000000>;
+ 	};
+ 
+ 	pcie0_refclk: pcie0-refclk {
+diff --git a/include/configs/imx8mp_evk.h b/include/configs/imx8mp_evk.h
+index 42ccb864b8b..e6f0382f31b 100644
+--- a/include/configs/imx8mp_evk.h
++++ b/include/configs/imx8mp_evk.h
+@@ -164,7 +164,7 @@
+ #define CFG_SYS_INIT_RAM_SIZE	0x80000
+ 
+ 
+-/* Totally 6GB DDR */
++/* Totally 4GB DDR */
+ #define CFG_SYS_SDRAM_BASE		0x40000000
+ #define PHYS_SDRAM			0x40000000
+ #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
+@@ -172,7 +172,7 @@
+ #ifdef CONFIG_TARGET_IMX8MP_DDR4_EVK
+ #define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
+ #else
+-#define PHYS_SDRAM_2_SIZE		0xC0000000	/* 3 GB */
++#define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
+ #endif
+ 
+ #define CFG_MXC_UART_BASE		UART2_BASE_ADDR
+-- 
+2.25.1
+
