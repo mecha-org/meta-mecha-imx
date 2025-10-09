@@ -29,6 +29,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0025-feat-support-for-ambient-light-sensor.patch \
 		   file://0026-feat-added-support-for-fuel-gauge.patch \
 		   file://0027-feat-support-for-usb0-mux-switch.patch \
+		   file://0028-feat-support-for-hdmi-audio.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
