@@ -1,0 +1,137 @@
+From f261504420083208d3467fd909a8f901ab64e3c2 Mon Sep 17 00:00:00 2001
+From: Hiren Vadukul <hirenv@ext.mechasystems.com>
+Date: Sat, 11 Oct 2025 13:57:37 +0530
+Subject: [PATCH] Add RGGB/RG10 format support and DTS updates
+
+Added RGGB and RG10 format support in the ISI format list.Updated
+the IMX219 camera node in the DTS with required ISI-related changes.
+
+Signed-off-by: Hiren Vadukul <hirenv@ext.mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 43cc0176474a..210bdbe2b366 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -397,7 +397,7 @@ imx219: imx219@10 {
+	        compatible = "sony,imx219";
+	        reg = <0x10>;
+	        pinctrl-names = "default";
+-	        pinctrl-0 = <&pinctrl_gpio_mclk>,<&pinctrl_gpio5>;
++	        pinctrl-0 = <&pinctrl_gpio_mclk>,<&pinctrl_gpio3>;
+	        clock-names = "xclk";
+	        clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+	        assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+@@ -405,9 +405,10 @@ imx219: imx219@10 {
+	        assigned-clock-rates = <24000000>;
+	        mclk = <24000000>;
+	        mclk_source = <0>;
+-	        csi_id=<0>;
++		mipi_csi;
++	        csi_id=<1>;
+
+-	        pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>; //pwn=14
++	        reset-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>; //pwn=14
+
+	        port {
+			imx219_to_mipi_csi2: endpoint {
+@@ -468,21 +469,37 @@ opt: opt3001@44 {
+	};
+ };
+
++&isi_0 {
++        status = "disabled";
++};
++
++&isi_1 {
++        status = "okay";
++
++        cap_device {
++                status = "okay";
++        };
++};
++
+ &cameradev {
+        status = "okay";
+ };
+
+ &mipi_csi_0 {
++        status = "disabled";
++};
++
++&mipi_csi_1 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+-	port@0 {
+-		reg = <0>;
++	port@1 {
++		reg = <1>;
+		mipi_csi_1_in: endpoint {
+			remote-endpoint = <&imx219_to_mipi_csi2>;
+			data-lanes = <2>;
+-			csis-hs-settle = <13>;
++			csis-hs-settle = <16>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+@@ -490,14 +507,10 @@ mipi_csi_1_in: endpoint {
+ };
+
+ &isp_0 {
+-       status = "okay";
+-};
+-
+-&isi_0 {
+	status = "disabled";
+ };
+
+-&isi_1 {
++&isp_1 {
+        status = "disabled";
+ };
+
+@@ -906,9 +919,9 @@ pinctrl_gpio_mclk: gpiomclkgrp {
+	                <MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1             0x1c4>;
+	};
+
+-	pinctrl_gpio5: gpio5grp {
++	pinctrl_gpio3: gpio3grp {
+	        fsl,pins =
+-	                <MX8MP_IOMUXC_NAND_ALE__GPIO3_IO00            0x184>;
++	                <MX8MP_IOMUXC_NAND_DQS__GPIO3_IO14            0x184>;
+	};
+
+	pinctrl_hog: hoggrp {
+diff --git a/drivers/staging/media/imx/imx8-isi-fmt.c b/drivers/staging/media/imx/imx8-isi-fmt.c
+index db11c809a3d3..6f43fb07cf9f 100644
+--- a/drivers/staging/media/imx/imx8-isi-fmt.c
++++ b/drivers/staging/media/imx/imx8-isi-fmt.c
+@@ -8,6 +8,24 @@
+
+ struct mxc_isi_fmt mxc_isi_out_formats[] = {
+	{
++		.name		= "RGGB",
++		.fourcc		= V4L2_PIX_FMT_SRGGB8,
++		.depth		= { 8 },
++		.color		= MXC_ISI_OUT_FMT_RAW8,
++		.memplanes	= 1,
++		.colplanes	= 1,
++		.align		= 2,
++		.mbus_code  = MEDIA_BUS_FMT_SRGGB8_1X8,
++	}, {
++		.name		= "RG10",
++		.fourcc		= V4L2_PIX_FMT_SRGGB10,
++		.depth		= { 16 },
++		.color		= MXC_ISI_OUT_FMT_RAW10,
++		.memplanes	= 1,
++		.colplanes	= 1,
++		.align		= 2,
++		.mbus_code  = MEDIA_BUS_FMT_SRGGB10_1X10,
++	}, {
+		.name		= "RGB565",
+		.fourcc		= V4L2_PIX_FMT_RGB565,
+		.depth		= { 16 },
+--
+2.25.1
+

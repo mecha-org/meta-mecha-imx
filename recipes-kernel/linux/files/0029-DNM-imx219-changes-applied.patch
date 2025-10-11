@@ -1,0 +1,112 @@
+From 85770f729a1767041b7f078358e62173d969101c Mon Sep 17 00:00:00 2001
+From: Hiren Vadukul <hirenv@ext.mechasystems.com>
+Date: Fri, 19 Sep 2025 20:01:17 +0530
+Subject: [PATCH] [DNM]: imx219 changes applied
+
+For ISI test in the camera enabled the imx219 camera.
+Added the power_s function for camera goes from stend by
+mode to stream mode.
+
+Signed-off-by: Hiren Vadukul <hirenv@ext.mechasystems.com>
+
+diff --git a/drivers/media/i2c/imx219.c b/drivers/media/i2c/imx219.c
+index a9a8cd148f4f..dccc9841f6bf 100644
+--- a/drivers/media/i2c/imx219.c
++++ b/drivers/media/i2c/imx219.c
+@@ -444,6 +444,7 @@ static const struct imx219_mode supported_modes[] = {
+ struct imx219 {
+	struct v4l2_subdev sd;
+	struct media_pad pad;
++	struct device *dev;
+
+	struct regmap *regmap;
+	struct clk *xclk; /* system clock to IMX219 */
+@@ -468,6 +469,9 @@ struct imx219 {
+	/* Streaming on/off */
+	bool streaming;
+
++	struct mutex lock;
++	int power_count;
++
+	/* Two or Four lanes */
+	u8 lanes;
+ };
+@@ -1028,7 +1032,41 @@ static int imx219_identify_module(struct imx219 *imx219)
+	return 0;
+ }
+
++static int imx219_s_power(struct v4l2_subdev *sd, int on)
++{
++       struct imx219 *sensor = to_imx219(sd);
++       int ret = 0;
++
++       mutex_lock(&sensor->lock);
++
++       /*
++       * If the power count is modified from 0 to != 0 or from != 0 to 0,
++       * update the power state.
++       */
++       if (sensor->power_count == !on) {
++               if (!!on) {
++                       imx219_power_on(sensor->dev);
++               }
++               else{
++                       imx219_power_off(sensor->dev);
++               }
++       }
++
++       /* Update the power count. */
++       sensor->power_count += on ? 1 : -1;
++       WARN_ON(sensor->power_count < 0);
++
++       mutex_unlock(&sensor->lock);
++
++       if (on && !ret && sensor->power_count == 1) {
++               /* restore controls */
++               ret = v4l2_ctrl_handler_setup(&sensor->ctrl_handler);
++       }
++       return ret;
++}
++
+ static const struct v4l2_subdev_core_ops imx219_core_ops = {
++	.s_power = imx219_s_power,
+	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
+	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+ };
+@@ -1052,6 +1090,16 @@ static const struct v4l2_subdev_ops imx219_subdev_ops = {
+	.pad = &imx219_pad_ops,
+ };
+
++static int imx219_link_setup(struct media_entity *entity,
++                             const struct media_pad *local,
++                             const struct media_pad *remote, u32 flags)
++{
++    return 0;
++}
++
++static const struct media_entity_operations imx219_media_ops = {
++        .link_setup = imx219_link_setup,
++};
+
+ static unsigned long imx219_get_pixel_rate(struct imx219 *imx219)
+ {
+@@ -1238,6 +1286,8 @@ static int imx219_probe(struct i2c_client *client)
+	if (!imx219)
+		return -ENOMEM;
+
++	imx219->dev = &client->dev;
++
+	v4l2_i2c_subdev_init(&imx219->sd, client, &imx219_subdev_ops);
+
+	/* Check the hardware configuration in device tree */
+@@ -1320,6 +1370,7 @@ static int imx219_probe(struct i2c_client *client)
+
+	/* Initialize source pad */
+	imx219->pad.flags = MEDIA_PAD_FL_SOURCE;
++	imx219->sd.entity.ops = &imx219_media_ops;
+
+	ret = media_entity_pads_init(&imx219->sd.entity, 1, &imx219->pad);
+	if (ret) {
+--
+2.25.1
+
