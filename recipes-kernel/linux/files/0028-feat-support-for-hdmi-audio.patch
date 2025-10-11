@@ -1,0 +1,41 @@
+From 64fea7775888acbe0c30f22e4d70a6dddb448de4 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 29 Sep 2025 11:27:27 +0530
+Subject: [PATCH] feat: support for hdmi audio
+
+This patch adds support for the audio over hdmi
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 3d53541c4ad0..43cc0176474a 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -55,6 +55,13 @@ reg_usdhc2_vqmmc: regulator-usdhc2-vqmmc {
+ 			 1800000 1>;
+ 	};
+ 
++	sound-hdmi {
++		compatible = "fsl,imx-audio-hdmi";
++		model = "audio-hdmi";
++		audio-cpu = <&aud2htx>;
++		hdmi-out;
++	};
++
+ 	sound-max98090 {
+ 	        compatible = "simple-audio-card";
+ 	        simple-audio-card,name = "max98090-audio";
+@@ -168,6 +175,10 @@ keypad-slide {
+ 	};
+ };
+ 
++&aud2htx {
++	status = "okay";
++};
++
+ &usb3_0 {
+         status = "okay";
+ };
+-- 
+2.25.1
+

@@ -1,0 +1,55 @@
+From a552a169375f664c7b2caee4ae4b97aeba8e94b6 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 22 Sep 2025 16:34:45 +0530
+Subject: [PATCH 4/5] feat: added support for fuel gauge
+
+This patch adds support for fuel gauge.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 699429867590..4677ff79fc62 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -529,6 +529,38 @@ usb_con_ss: endpoint {
+ 			};
+ 		};
+ 	};
++
++	bq27441: fuel-gauge@55 {
++		compatible = "ti,bq27441";
++		reg = <0x55>;
++		monitored-battery = <&bat>;
++		bat: battery {
++			compatible = "simple-battery";
++			over-voltage-threshold-microvolt = <4500000>;
++			re-charge-voltage-microvolt = <250000>;
++			voltage-min-design-microvolt = <3200000>;
++			voltage-max-design-microvolt = <4200000>;
++			energy-full-design-microwatt-hours = <5290000>;
++			charge-full-design-microamp-hours = <1430000>;
++			precharge-current-microamp = <256000>;
++			precharge-upper-limit-microvolt = <2500000>;
++			charge-term-current-microamp = <128000>;
++			constant-charge-current-max-microamp = <900000>;
++			constant-charge-voltage-max-microvolt = <4200000>;
++			factory-internal-resistance-micro-ohms = <250000>;
++			ocv-capacity-celsius = <(-10) 0 10>;
++			/* table for -10 degree Celsius */
++			ocv-capacity-table-0 = <4185000 100>, <4113000 95>, <4066000 90>;
++			/* table for 0 degree Celsius */
++			ocv-capacity-table-1 = <4200000 100>, <4185000 95>, <4113000 90>;
++			/* table for 10 degree Celsius */
++			ocv-capacity-table-2 = <4250000 100>, <4200000 95>, <4185000 90>;
++			resistance-temp-table = <20 100>, <10 90>, <0 80>, <(-10) 60>;
++			operating-range-celsius = <(-30) 50>;
++			ambient-celsius = <(-5) 50>;
++			alert-celsius = <0 40>;
++		};
++	};
+ };
+ 
+ &i2c5 {
+-- 
+2.25.1
+

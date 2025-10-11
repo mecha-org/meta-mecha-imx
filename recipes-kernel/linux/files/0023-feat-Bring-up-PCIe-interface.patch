@@ -1,0 +1,49 @@
+From 597495fa62cf850124a567e580a04b834bf8b393 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 22 Sep 2025 16:10:21 +0530
+Subject: [PATCH 1/5] feat: Bring-up PCIe interface
+
+PCIe interface bring-up.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 08c8b375bc91..87e98e77bbca 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -745,6 +745,20 @@ panel_in: endpoint {
+ 	};
+ };
+ 
++&pcie_phy {
++        fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_OUTPUT>;
++        clocks = <&hsio_blk_ctrl>;
++        clock-names = "ref";
++        status = "okay";
++};
++
++&pcie {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_pcie0>;
++        reset-gpio = <&gpio1 24 GPIO_ACTIVE_LOW>;
++        status = "okay";
++};
++
+ &gpu_2d {
+ 	status = "okay";
+ };
+@@ -1142,4 +1156,11 @@ pinctrl_imu_gpio: imugrp {
+ 			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x1c4
+ 		>;
+ 	};
++
++	pinctrl_pcie0: pci0grp {
++		fsl,pins = <
++			MX8MP_IOMUXC_ENET_RX_CTL__GPIO1_IO24		0x1c4
++			MX8MP_IOMUXC_UART4_RXD__PCIE_CLKREQ_B		0x1c4
++		>;
++	};
+ };
+-- 
+2.25.1
+

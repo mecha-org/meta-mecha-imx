@@ -1,0 +1,31 @@
+From 40faf8cdfd642a370eb3f12864391cd9349fe26a Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 22 Sep 2025 16:24:04 +0530
+Subject: [PATCH 3/5] feat: support for ambient light sensor
+
+This patch adds support for ALS OPT-3004 sensor
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index f5a4e97bd5a5..699429867590 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -434,6 +434,14 @@ imu: icm42605@69 {
+ 		interrupt-parent = <&gpio4>;
+ 		interrupts = <22 IRQ_TYPE_EDGE_FALLING>;
+ 	};
++
++	opt: opt3001@44 {
++		compatible = "ti,opt3001";
++		reg = <0x44>;
++		interrupt-parent = <&pca9535>;
++		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
++		status = "okay";
++	};
+ };
+ 
+ &cameradev {
+-- 
+2.25.1
+
