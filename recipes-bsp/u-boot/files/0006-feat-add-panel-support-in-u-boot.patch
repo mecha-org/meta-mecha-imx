@@ -1,0 +1,96 @@
+From 9a176514c61e3de62eb9f357455e408c36ecdda1 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 8 Dec 2025 15:58:55 +0530
+Subject: [PATCH] feat: add panel support in u-boot
+
+This patch adds support for panel in u-boot
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm/dts/imx8mp-evk.dts b/arch/arm/dts/imx8mp-evk.dts
+index dcf80d16fd7..e7e6c9fa610 100644
+--- a/arch/arm/dts/imx8mp-evk.dts
++++ b/arch/arm/dts/imx8mp-evk.dts
+@@ -91,26 +91,23 @@
+ 		status = "okay";
+ 	};
+ 
+-	//rm67199_panel {
+-	//	compatible = "raydium,rm67199";
+-	//	pinctrl-names = "default";
+-	//	pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+-	//	reset-gpio = <&gpio1 8 GPIO_ACTIVE_LOW>;
+-	//	dsi-lanes = <4>;
+-	//	video-mode = <2>;	/* 0: burst mode
+-	//				 * 1: non-burst mode with sync event
+-	//				 * 2: non-burst mode with sync pulse
+-	//				 */
+-	//	panel-width-mm = <68>;
+-	//	panel-height-mm = <121>;
+-	//	status = "okay";
+-
+-	//	port {
+-	//		rm67191_from_dsim: endpoint {
+-	//			remote-endpoint = <&dsim_to_rm67191>;
+-	//		};
+-	//	};
+-	//};
++	panel@0 {
++		compatible = "ch13726a,rp5";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
++		reset-gpio = <&gpio4 9 GPIO_ACTIVE_HIGH>;
++		video-mode = <0>;	/* 0: burst mode
++					 * 1: non-burst mode with sync event
++					 * 2: non-burst mode with sync pulse
++					 */
++		status = "okay";
++
++		port {
++			ddic_from_dsim: endpoint {
++				remote-endpoint = <&dsim_to_ddic>;
++			};
++		};
++	};
+ 
+ 	cbtl04gp {
+ 		compatible = "nxp,cbtl04gp";
+@@ -521,19 +518,13 @@
+ &mipi_dsi {
+ 	status = "okay";
+ 
+-//	ports {
+-//		port@1 {
+-//			dsim_to_adv7535: endpoint {
+-//				remote-endpoint = <&adv7535_from_dsim>;
+-//			};
+-//		};
+-//
+-//		port@2 {
+-//			dsim_to_rm67191: endpoint {
+-//				remote-endpoint = <&rm67191_from_dsim>;
+-//			};
+-//		};
+-//	};
++	ports {
++		port@1 {
++			dsim_to_ddic: endpoint {
++				remote-endpoint = <&ddic_from_dsim>;
++			};
++		};
++	};
+ };
+ 
+ &pcie_phy {
+@@ -764,7 +755,7 @@
+ 
+ 	pinctrl_mipi_dsi_en: mipidsiengrp {
+ 		fsl,pins = <
+-			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08	0x16
++			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09	0x16
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+
