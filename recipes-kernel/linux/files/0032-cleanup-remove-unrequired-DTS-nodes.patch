@@ -1,0 +1,231 @@
+From faa48049349da4bd5144857c97cd6636cc3a4cfd Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Sat, 10 Jan 2026 19:07:45 +0530
+Subject: [PATCH 4/9] cleanup: remove unrequired DTS nodes
+
+This patch removes unrequired DTS nodes and
+eliminates unnecessary GPIO allocations.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 43cc0176474a..622fe7d93ed5 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+ /*
+- * Copyright 2025 Silicon Signals Pvt Ltd
++ * Copyright 2025 Mecha Systems
+  */
+ 
+ /dts-v1/;
+@@ -21,16 +21,8 @@ chosen {
+ 	/* Reference from imx8mp-evk dts file needs to be tested */
+ 	memory@40000000 {
+ 		device_type = "memory";
+-		reg = <0x00000000 0x40000000   0x00000001 0x00000000>;
+-	};
+-
+-	iw612_pwrseq: iw612_pwrseq {
+-		compatible = "mmc-pwrseq-simple";
+-		post-power-on-delay-ms = <100>;
+-		power-off-delay-us = <10000>;
+-		reset-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>,       /* WIFI_RESET */
+-			      <&gpio1 12 GPIO_ACTIVE_LOW>;      /* WIFI_PWR_EN */
+-		status = "okay";
++		reg = <0x0 0x40000000 0 0x80000000
++		       0x1 0x00000000 1 0x40000000>;
+ 	};
+ 
+ 	reg_usdhc2_vmmc: regulator-usdhc2 {
+@@ -125,44 +117,6 @@ simple-audio-card,codec {
+ 	        };
+ 	};
+ 
+-	reg_wifi_en: regulator-wifi-en {
+-		 compatible = "regulator-fixed";
+-		 enable-active-high;
+-		 gpio = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+-		 pinctrl-names = "default";
+-		 pinctrl-0 = <&pinctrl_wifi_pwr_en>;
+-		 regulator-max-microvolt = <3300000>;
+-		 regulator-min-microvolt = <3300000>;
+-		 regulator-name = "PDn_AW-CM276NF";
+-		 startup-delay-us = <2000>;
+-	};
+-
+-	ptn36043 {
+-		compatible = "nxp,ptn36043";
+-		pinctrl-names = "default";
+-		switch-gpios = <&pca9535 8 GPIO_ACTIVE_LOW>;
+-		orientation-switch;
+-
+-		port {
+-			usb3_data_ss: endpoint {
+-				remote-endpoint = <&typec_con_ss>;
+-			};
+-		};
+-	};
+-
+-	ptn36043_1 {
+-		compatible = "nxp,ptn36043";
+-		pinctrl-names = "default";
+-		switch-gpios = <&pca9535 6 GPIO_ACTIVE_LOW>;
+-		orientation-switch;
+-
+-		port {
+-			usb0_sw_ep: endpoint {
+-				remote-endpoint = <&usb0_sw_ss>;
+-			};
+-		};
+-	};
+-
+ 	Comet-Extension {
+ 		compatible = "gpio-keys";
+ 
+@@ -191,12 +145,6 @@ &usb_dwc3_0 {
+         status = "okay";
+ 	dr_mode = "dual";
+ 	usb-role-switch;
+-
+-	port {
+-		usb0_ss_ep: endpoint {
+-			remote-endpoint = <&usb_con_ss>;
+-		};
+-	};
+ };
+ 
+ &usb3_phy1 {
+@@ -435,18 +383,6 @@ connector {
+ 			data-role = "dual";
+ 			power-role = "dual";
+ 			typec-power-opmode = "default";
+-
+-			ports {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-
+-				port@1 {
+-					reg = <1>;
+-					typec_con_ss: endpoint {
+-						remote-endpoint = <&usb3_data_ss>;
+-					};
+-				};
+-			};
+ 		};
+ 	};
+ 
+@@ -527,46 +463,6 @@ max98090: max98090@10 {
+ 	        clock-names = "mclk";
+ 	};
+ 
+-	pd_tps25751_1: typec_1@21 {
+-		compatible = "ti,tps25751";
+-		reg = <0x21>, <0x0f>;
+-		reg-names = "main", "patch-address";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&pinctrl_typec_0>;
+-		interrupt-parent = <&gpio2>;
+-		interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
+-		interrupt-names = "irq";
+-		firmware-name = "tps25751-v1.bin";
+-		status = "okay";
+-
+-		connector {
+-			compatible = "usb-c-connector";
+-			label = "USB-C-Port2";
+-			self-powered;
+-			data-role = "dual";
+-			power-role = "dual";
+-
+-			ports {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-
+-				port@0 {
+-					reg = <0>;
+-					usb_con_ss: endpoint {
+-						remote-endpoint = <&usb0_ss_ep>;
+-					};
+-				};
+-
+-				port@1 {
+-					reg = <1>;
+-					usb0_sw_ss: endpoint {
+-						remote-endpoint = <&usb0_sw_ep>;
+-					};
+-				};
+-			};
+-		};
+-	};
+-
+ 	bq27441: fuel-gauge@55 {
+ 		compatible = "ti,bq27441";
+ 		reg = <0x55>;
+@@ -608,7 +504,7 @@ &i2c5 {
+ 
+ 	/* PD controller for USB_PWR */
+ 	tps25751: typec@21 {
+-		compatible = "ti,tps25750";
++		compatible = "ti,tps25751";
+ 		reg = <0x21>, <0x0f>;
+ 		reg-names = "main", "patch-address";
+ 		pinctrl-names = "default";
+@@ -726,7 +622,6 @@ &usdhc1 {
+ 	pinctrl-0 = <&pinctrl_usdhc1>, <&pinctrl_wifi_ctrl>;
+ 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>, <&pinctrl_wifi_ctrl>;
+ 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>, <&pinctrl_wifi_ctrl>;
+-	vmmc-supply = <&reg_wifi_en>;
+ 	status = "okay";
+ };
+ 
+@@ -1094,11 +989,6 @@ pinctrl_wifi_ctrl: wifictrlgrp {
+                 <MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12             0x1c4>; /* WIFI_WKUP_WLAN */
+ 	};
+ 
+-	pinctrl_wifi_pwr_en: wifipwrengrp {
+-        fsl,pins =
+-                <MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11            0x184>; /* PMIC_EN_WIFI */
+-	};
+-
+ 	pinctrl_usdhc2: usdhc2grp {
+ 		fsl,pins = <
+ 			MX8MP_IOMUXC_SD2_CLK__USDHC2_CLK		0x190
+@@ -1147,14 +1037,15 @@ pinctrl_usdhc2_sleep: usdhc2slpgrp {
+ 	 };
+ 
+ 	pinctrl_usdhc2_cd_sleep: usdhc2cdslpgrp {
+-	        fsl,pins =
+-	                <MX8MP_IOMUXC_SD2_CD_B__GPIO2_IO12              0x0>;   /* SODIMM 84 */
++	        fsl,pins = <
++			MX8MP_IOMUXC_SD2_CD_B__GPIO2_IO12              0x0
++		>;
+ 	};
+ 
+ 	pinctrl_usdhc2_cd: usdhc2cdgrp {
+-	        fsl,pins =
+-	                <MX8MP_IOMUXC_SD2_CD_B__GPIO2_IO12              0x1c4
+-			MX8MP_IOMUXC_GPIO1_IO04__GPIO1_IO04             0x10 /* PMIC_USDHC_VSELECT */>;   /* SODIMM 84 */
++	        fsl,pins = <
++			MX8MP_IOMUXC_SD2_CD_B__GPIO2_IO12              0x1c4
++		>;
+ 	};
+ 
+ 	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmcgrp {
+@@ -1246,12 +1137,6 @@ MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x1c4
+ 		>;
+ 	};
+ 
+-	pinctrl_typec_0: typec2grp {
+-		fsl,pins = <
+-			MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x1c4
+-		>;
+-	};
+-
+ 	pinctrl_imu_gpio: imugrp {
+ 		fsl,pins = <
+ 			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x1c4
+-- 
+2.25.1
+
