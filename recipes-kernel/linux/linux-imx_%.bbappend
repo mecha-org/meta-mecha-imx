@@ -38,6 +38,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0034-fix-display-avoid-overwriting-init-sequence.patch \
 		   file://0035-fix-codec-add-irq-gpio-for-jack-detection.patch \
 		   file://0036-feat-imx219-camera-support-on-ISP.patch \
+		   file://0037-feat-enable-USB-hub-using-GPIOs.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
