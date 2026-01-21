@@ -30,9 +30,11 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0026-feat-added-support-for-fuel-gauge.patch \
 		   file://0027-feat-support-for-usb0-mux-switch.patch \
 		   file://0028-feat-support-for-hdmi-audio.patch \
+		   file://0029-feat-add-support-for-Quectel-EM05-LTE-module.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
+		   file://lte-module.cfg \
 		   file://tps25751.bin \
 		   file://tps25751-v1.bin \
 		"
@@ -45,4 +47,5 @@ do_configure:prepend() {
 
 DELTA_KERNEL_DEFCONFIG:prepend = " config.cfg \
 				display-conf.cfg \
+				lte-module.cfg \
 				"
