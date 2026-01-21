@@ -1,0 +1,58 @@
+From ddd528659944e92c5c95c37874cfe6e2e7be5f15 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 13 Jan 2026 16:28:14 +0530
+Subject: [PATCH 7/9] fix: codec: add irq gpio for jack detection
+
+This patch adds valid irq gpio for jack detection
+event for max98090 audio codec.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 7e850707b5d2..149529ab6e43 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -86,8 +86,8 @@ sound-max98090 {
+ 	                "IN1", "MICBIAS",
+ 	                "MIC1","IN1",
+ 	                "MIC2","IN1",
+-	                "Speakers", "SPKL",
+-	                "Speakers", "SPKR",
++	                //"Speakers", "SPKL",
++	                //"Speakers", "SPKR",
+ 
+ 	                /* DMIC-3 Routings */
+ 	                "DMICL", "DMIC Mux",
+@@ -523,12 +523,14 @@ max98090: max98090@10 {
+ 	        #sound-dai-cells = <0>;
+ 	        pinctrl-names = "default";
+ 	        pinctrl-0 = <&pinctrl_sai3>;
++		pinctrl-1 = <&pinctrl_codec>;
+ 	        compatible = "maxim,max98091";
+ 	        reg = <0x10>;
+ 	        clocks = <&clk IMX8MP_CLK_SAI3_ROOT>;
+-	        interrupt-parent = <&gpio1>;
+-	        interrupts = <8 IRQ_TYPE_LEVEL_LOW>; /* SODIMM_218 */
++	        interrupt-parent = <&gpio4>;
++	        interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
+ 	        clock-names = "mclk";
++		status = "okay";
+ 	};
+ 
+ 	bq27441: fuel-gauge@55 {
+@@ -1218,6 +1220,12 @@ MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x1c4
+ 		>;
+ 	};
+ 
++	pinctrl_codec: codecgrp {
++		fsl,pins = <
++			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15              0x1c4
++		>;
++	};
++
+ 	pinctrl_pcie0: pci0grp {
+ 		fsl,pins = <
+ 			MX8MP_IOMUXC_ENET_RX_CTL__GPIO1_IO24		0x1c4
+-- 
+2.25.1
+
