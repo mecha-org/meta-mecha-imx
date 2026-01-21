@@ -32,6 +32,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0028-feat-support-for-hdmi-audio.patch \
 		   file://0029-feat-add-support-for-Quectel-EM05-LTE-module.patch \
 		   file://0030-dwc3-Add-support-for-imx8mp-dwc-mainline-driver.patch \
+		   file://0031-fix-codec-added-logic-for-hp-jack-detection.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
