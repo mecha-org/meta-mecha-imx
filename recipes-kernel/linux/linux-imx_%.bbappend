@@ -42,6 +42,7 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0038-feat-support-for-touch-to-wake.patch \
 		   file://0039-feat-support-for-wifi-dev-wake-and-kill-switch.patch \
 		   file://0040-feat-support-for-SoC-wake-using-LTE.patch \
+		   file://0041-tps25751-return-on-usb-role-switch-probe-deferral.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
