@@ -1,0 +1,48 @@
+From e2a3037b82651d8f26160e09afbd45c41f455c34 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 27 Jan 2026 14:29:12 +0530
+Subject: [PATCH 3/3] feat:support for SoC wake using LTE
+
+Adds support for SOC wake from suspend using LTE module.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index ff6e888d055c..ece7777b8e6d 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -153,6 +153,20 @@ keypad-slide {
+ 			gpios = <&gpio4 23 GPIO_ACTIVE_HIGH>;
+ 		};
+ 	};
++
++	gpio-keys{
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_lte>;
++		label = "wowwan";
++
++		wowwan-signal{
++			gpios = <&gpio1 26 IRQ_TYPE_EDGE_FALLING>;
++			label = "wake-up soc";
++			linux,code = <KEY_WAKEUP>;
++			wakeup-source;
++		};
++	};
+ };
+ 
+ &aud2htx {
+@@ -1262,4 +1276,10 @@ MX8MP_IOMUXC_ENET_RX_CTL__GPIO1_IO24		0x1c4
+ 			MX8MP_IOMUXC_UART4_RXD__PCIE_CLKREQ_B		0x1c4
+ 		>;
+ 	};
++
++	pinctrl_lte: ltegrp {
++		fsl,pins = <
++			MX8MP_IOMUXC_ENET_RD0__GPIO1_IO26               0x1c4
++		>;
++	};
+ };
+-- 
+2.25.1
+
