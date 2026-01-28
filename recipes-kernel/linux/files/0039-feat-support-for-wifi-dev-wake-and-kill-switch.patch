@@ -1,0 +1,52 @@
+From 27dc6c6f5f3733492a424614c4b79ac0c5e22d33 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 27 Jan 2026 13:25:12 +0530
+Subject: [PATCH 2/3] feat: support for wifi dev wake and kill switch
+
+Adds support for Device wakeup using wifi and
+wifi kill switch using cd-gpios.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index cf0e0c12ec57..ff6e888d055c 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -690,12 +690,20 @@ &sai3 {
+ &usdhc1 {
+ 	bus-width = <4>;
+ 	keep-power-in-suspend;
+-	non-removable;
++	wakeup-source;
+ 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+ 	pinctrl-0 = <&pinctrl_usdhc1>, <&pinctrl_wifi_ctrl>;
+ 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>, <&pinctrl_wifi_ctrl>;
+ 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>, <&pinctrl_wifi_ctrl>;
++	cd-gpios = <&gpio2 10 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
++
++	wifi_wake_host {
++		compatible = "nxp,wifi-wake-host";
++		interrupt-parent = <&gpio3>;
++		interrupts = <6 IRQ_TYPE_LEVEL_HIGH>;
++		interrupt-names = "host-wake";
++	};
+ };
+ 
+ &usdhc2 {
+@@ -1075,8 +1083,10 @@ MX8MP_IOMUXC_SD1_DATA3__USDHC1_DATA3		0x1d6
+ 	};
+ 
+ 	pinctrl_wifi_ctrl: wifictrlgrp {
+-        fsl,pins =
+-                <MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12             0x1c4>; /* WIFI_WKUP_WLAN */
++		fsl,pins = <
++			MX8MP_IOMUXC_NAND_DATA00__GPIO3_IO06		0x1c4
++			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10		0x1c4
++		>;
+ 	};
+ 
+ 	pinctrl_usdhc2: usdhc2grp {
+-- 
+2.25.1
+
