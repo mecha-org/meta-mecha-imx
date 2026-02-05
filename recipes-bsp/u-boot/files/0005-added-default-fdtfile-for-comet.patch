@@ -1,0 +1,26 @@
+From 502a473a9421522a7cc84ce45c96398638b203a4 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 16 Sep 2025 14:46:12 +0530
+Subject: [PATCH] added default fdtfile for comet
+
+This patch adds the default fdt file variable
+for the comet.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/configs/imx8mp_evk_defconfig b/configs/imx8mp_evk_defconfig
+index 7112fdf5859..9e3eca23655 100644
+--- a/configs/imx8mp_evk_defconfig
++++ b/configs/imx8mp_evk_defconfig
+@@ -33,7 +33,7 @@ CONFIG_REMAKE_ELF=y
+ CONFIG_OF_BOARD_FIXUP=y
+ CONFIG_OF_BOARD_SETUP=y
+ CONFIG_OF_SYSTEM_SETUP=y
+-CONFIG_DEFAULT_FDT_FILE="imx8mp-evk.dtb"
++CONFIG_DEFAULT_FDT_FILE="imx8mp-mecha-comet-m-gen6.dtb"
+ CONFIG_ARCH_MISC_INIT=y
+ CONFIG_BOARD_EARLY_INIT_F=y
+ CONFIG_BOARD_LATE_INIT=y
+-- 
+2.25.1
+

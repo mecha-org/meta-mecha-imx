@@ -1,0 +1,156 @@
+From 28ee58d1f6fa36b5de66ba3e4dca6cb885fa9288 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 13 Jan 2026 15:40:38 +0530
+Subject: [PATCH 5/9] support for updated usb architecture
+
+This patch adds support for updated USB
+architecture in DVT.
+
+Contains USB Mux switch and CC detect IC.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 622fe7d93ed5..7e850707b5d2 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -117,6 +117,32 @@ simple-audio-card,codec {
+ 	        };
+ 	};
+ 
++	usb0_ss_mux: ptn36043 {
++		compatible = "nxp,ptn36043";
++		pinctrl-names = "default";
++		switch-gpios = <&gpio4 14 GPIO_ACTIVE_LOW>;
++		orientation-switch;
++
++		port {
++			usb0_sw_ep: endpoint {
++				remote-endpoint = <&usb0_sw_ss>;
++			};
++		};
++	};
++
++	usb1_ss_mux: ptn36043_1 {
++		compatible = "nxp,ptn36043";
++		pinctrl-names = "default";
++		switch-gpios = <&gpio1 22 GPIO_ACTIVE_LOW>;
++		orientation-switch;
++
++		port {
++			usb1_sw_ep: endpoint {
++				remote-endpoint = <&usb1_sw_ss>;
++			};
++		};
++	};
++
+ 	Comet-Extension {
+ 		compatible = "gpio-keys";
+ 
+@@ -368,21 +394,63 @@ imx219_to_mipi_csi2: endpoint {
+ 		};
+ 	};
+ 
+-	tusb320: tusb320@61 {
++	tcpc_1: tusb320@60 {
+ 		compatible = "ti,tusb320";
+-		reg = <0x61>;
++		reg = <0x60>;
+ 		pinctrl-0 = <&pinctrl_tusb>;
++		interrupt-parent = <&gpio4>;
++		interrupts =<17 IRQ_TYPE_LEVEL_LOW>;
++		vbus-gpios = <&gpio4 18 GPIO_ACTIVE_HIGH>;
++		status = "okay";
++
++		connector {
++			compatible = "usb-c-connector";
++			label = "USB-C-Port1";
++			data-role = "dual";
++			power-role = "dual";
++			typec-power-opmode = "default";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@1 {
++					reg = <1>;
++					usb0_sw_ss: endpoint {
++						remote-endpoint = <&usb0_sw_ep>;
++					};
++				};
++			};
++		};
++	};
++
++	tcpc_2: tusb320@61 {
++		compatible = "ti,tusb320";
++		reg = <0x61>;
++		pinctrl-0 = <&pinctrl_tusb_1>;
+ 		interrupt-parent = <&gpio1>;
+ 		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+-		vbus-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
++		vbus-gpios = <&gpio4 12 GPIO_ACTIVE_HIGH>;
+ 		status = "okay";
+ 
+ 		connector {
+ 			compatible = "usb-c-connector";
+-			label = "USB-C-Port1";
++			label = "USB-C-Port2";
+ 			data-role = "dual";
+ 			power-role = "dual";
+ 			typec-power-opmode = "default";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@1 {
++					reg = <1>;
++					usb1_sw_ss: endpoint {
++						remote-endpoint = <&usb1_sw_ep>;
++					};
++				};
++			};
+ 		};
+ 	};
+ 
+@@ -509,8 +577,8 @@ tps25751: typec@21 {
+ 		reg-names = "main", "patch-address";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pinctrl_typec>;
+-		interrupt-parent = <&gpio2>;
+-		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+ 		interrupt-names = "irq";
+ 		firmware-name = "tps25751.bin";
+ 
+@@ -1125,15 +1193,22 @@ MX8MP_IOMUXC_SAI1_RXD3__GPIO4_IO05		0x184
+ 	};
+ 
+ 	pinctrl_tusb: tusbgrp {
++		fsl,pins = <
++			MX8MP_IOMUXC_SAI1_TXD5__GPIO4_IO17		0x184
++			MX8MP_IOMUXC_SAI1_TXD6__GPIO4_IO18		0x184
++		>;
++	};
++
++	pinctrl_tusb_1: tusbgrp {
+ 		fsl,pins = <
+ 			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x184
+-			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20			0x184
++			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x184
+ 		>;
+ 	};
+ 
+ 	pinctrl_typec: typec1grp {
+ 		fsl,pins = <
+-			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x1c4
++			MX8MP_IOMUXC_SAI1_RXD1__GPIO4_IO03		0x1c4
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+

@@ -1,0 +1,80 @@
+From b235179364916036ebc3826164fe4781a860eb57 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Wed, 28 Jan 2026 17:02:44 +0530
+Subject: [PATCH] feat: support USB data on USB-PWR interface
+
+Enable USB data functionality on the USB-PWR interface in
+addition to existing Power Delivery and SuperSpeed mux
+switch support.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index ece7777b8e6d..a88558d5458e 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -143,6 +143,19 @@ usb1_sw_ep: endpoint {
+ 		};
+ 	};
+ 
++	usb_pwr_mux: ptn36043_2 {
++		compatible = "nxp,ptn36043";
++		pinctrl-names = "default";
++		switch-gpios = <&gpio4 1 GPIO_ACTIVE_LOW>;
++		orientation-switch;
++
++		port {
++			usb_pwr_sw_ep: endpoint {
++				remote-endpoint = <&usb_pwr_sw_ss>;
++			};
++		};
++	};
++
+ 	Comet-Extension {
+ 		compatible = "gpio-keys";
+ 
+@@ -183,8 +196,14 @@ &usb3_phy0 {
+ 
+ &usb_dwc3_0 {
+         status = "okay";
+-	dr_mode = "dual";
++	dr_mode = "otg";
+ 	usb-role-switch;
++
++	port {
++		usb0_pwr_ep: endpoint {
++			remote-endpoint = <&usb_pwr_ep>;
++		};
++	};
+ };
+ 
+ &usb3_phy1 {
+@@ -607,6 +626,25 @@ connector {
+ 			self-powered;
+ 			data-role = "dual";
+ 			power-role = "dual";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@0 {
++					reg = <0>;
++					usb_pwr_ep: endpoint {
++						remote-endpoint = <&usb0_pwr_ep>;
++					};
++				};
++
++				port@1 {
++					reg = <1>;
++					usb_pwr_sw_ss: endpoint {
++						remote-endpoint = <&usb_pwr_sw_ep>;
++					};
++				};
++			};
+ 		};
+ 	};
+ };
+-- 
+2.25.1
+

@@ -1,0 +1,41 @@
+From c237175a5877c8c614e19e8085d1717d1dc247fc Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 13 Jan 2026 18:39:58 +0530
+Subject: [PATCH 9/9] feat: enable USB hub using GPIOs
+
+Enable the USB hub by asserting the power-down
+and reset GPIOs high.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 5b57f031f860..56c18948eb82 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -827,6 +827,23 @@ lte-ap-mode {
+ 	};
+ };
+ 
++&gpio4 {
++
++	hub_en {
++		gpio-hog;
++		gpios = <19 GPIO_ACTIVE_HIGH>;
++		output-high;
++		line-name = "HUB_EN";
++	};
++
++	hub_rst {
++		gpio-hog;
++		gpios = <0 GPIO_ACTIVE_HIGH>;
++		output-high;
++		line-name = "HUB_RST";
++	};
++};
++
+ &gpu_2d {
+ 	status = "okay";
+ };
+-- 
+2.25.1
+

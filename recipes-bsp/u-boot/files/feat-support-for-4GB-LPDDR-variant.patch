@@ -1,9 +1,12 @@
-From 4526151bc00f823b408aea575f24bc71707848c2 Mon Sep 17 00:00:00 2001
+From 462e33d15dea6084d91d53ffcd2a718210c4eef1 Mon Sep 17 00:00:00 2001
 From: Pratham Malaviya <prathamm@mechasystems.com>
-Date: Tue, 12 Aug 2025 22:04:51 +0530
-Subject: [PATCH] Added support for 4GB LPDDR DRAM for Custom Board
+Date: Mon, 8 Dec 2025 11:49:12 +0530
+Subject: [PATCH] feat: support for 4GB LPDDR variant
 
-Signed-off-by: Himanshu Bhavani <himanshub@mechasystems.com>
+This patch adds support for 4GB LPDDR variant
+comet devices.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
 
 diff --git a/board/freescale/imx8mp_evk/lpddr4_timing.c b/board/freescale/imx8mp_evk/lpddr4_timing.c
 index 8c5306d5d20..eece226b513 100644
@@ -2365,6 +2368,28 @@ index 8c5306d5d20..eece226b513 100644
 -}
 -#endif
 -#endif
+diff --git a/include/configs/imx8mp_evk.h b/include/configs/imx8mp_evk.h
+index 42ccb864b8b..74a8697f621 100644
+--- a/include/configs/imx8mp_evk.h
++++ b/include/configs/imx8mp_evk.h
+@@ -164,7 +164,7 @@
+ #define CFG_SYS_INIT_RAM_SIZE	0x80000
+ 
+ 
+-/* Totally 6GB DDR */
++/* Totally 4GB DDR */
+ #define CFG_SYS_SDRAM_BASE		0x40000000
+ #define PHYS_SDRAM			0x40000000
+ #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
+@@ -172,7 +172,7 @@
+ #ifdef CONFIG_TARGET_IMX8MP_DDR4_EVK
+ #define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
+ #else
+-#define PHYS_SDRAM_2_SIZE		0xC0000000	/* 3 GB */
++#define PHYS_SDRAM_2_SIZE		0x40000000	/* 3 GB */
+ #endif
+ 
+ #define CFG_MXC_UART_BASE		UART2_BASE_ADDR
 -- 
 2.25.1
 

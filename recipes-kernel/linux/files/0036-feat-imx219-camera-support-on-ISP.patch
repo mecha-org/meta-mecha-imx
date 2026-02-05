@@ -1,0 +1,61 @@
+From 6a3b5aa0f36799d3a5b1abcce8e79459911e9964 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Tue, 13 Jan 2026 18:32:44 +0530
+Subject: [PATCH 8/9] feat: imx219 camera support on ISP
+
+Added support for imx219 camera support
+on CSI-0 instead of CSI-1 for ISP support.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+index 149529ab6e43..5b57f031f860 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-mecha-comet-m-gen6.dts
+@@ -380,12 +380,13 @@ imx219: imx219@10 {
+ 	        mclk = <24000000>;
+ 	        mclk_source = <0>;
+ 	        csi_id=<0>;
++		pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>; //pwn=14
++		rst-gpios = <&gpio3 0 GPIO_ACTIVE_HIGH>;
++		mipi_csi;
+ 
+-	        pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>; //pwn=14
+-
+-	        port {
++		port {
+ 			imx219_to_mipi_csi2: endpoint {
+-				remote-endpoint = <&mipi_csi_1_in>;
++				remote-endpoint = <&mipi_csi_0_in>;
+ 				clock-lanes = <0>;
+ 				data-lanes = <1 2>;
+ 				clock-noncontinuous;
+@@ -483,12 +484,10 @@ &mipi_csi_0 {
+ 	
+ 	port@0 {
+ 		reg = <0>;
+-		mipi_csi_1_in: endpoint {
++		mipi_csi_0_in: endpoint {
+ 			remote-endpoint = <&imx219_to_mipi_csi2>;
+ 			data-lanes = <2>;
+ 			csis-hs-settle = <13>;
+-			csis-clk-settle = <2>;
+-			csis-wclk;
+ 		};
+ 	};
+ };
+@@ -498,7 +497,10 @@ &isp_0 {
+ };
+ 
+ &isi_0 {
+-       	status = "disabled";
++	status = "okay";
++	cap_device {
++		status = "okay";
++	};
+ };
+ 
+ &isi_1 {
+-- 
+2.25.1
+

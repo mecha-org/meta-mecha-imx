@@ -1,0 +1,97 @@
+From d85181ebf56d93124f82ba54c80e4b4aa9456619 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Mon, 8 Dec 2025 15:10:09 +0530
+Subject: [PATCH] fix: panel config and handle panel-absent case
+
+Update the driver configuration and handle the case where the panel is not
+attached to the device.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/drivers/video/ddic-ch13726a.c b/drivers/video/ddic-ch13726a.c
+index 765c637ac2a..a322b3bb089 100644
+--- a/drivers/video/ddic-ch13726a.c
++++ b/drivers/video/ddic-ch13726a.c
+@@ -39,7 +39,7 @@ static void ch13726a_dcs_write_cmd(struct udevice *dev, u8 cmd, u8 value)
+ }
+ #endif
+ 
+-static void ch13726a_dcs_write_buf(struct udevice *dev, const void *data,
++static int ch13726a_dcs_write_buf(struct udevice *dev, const void *data,
+                                   size_t len)
+ {
+         struct mipi_dsi_panel_plat *plat = dev_get_plat(dev);
+@@ -49,6 +49,8 @@ static void ch13726a_dcs_write_buf(struct udevice *dev, const void *data,
+         err = mipi_dsi_dcs_write_buffer(device, data, len);
+         if (err < 0)
+                 dev_err(dev, "MIPI DSI DCS write buffer failed: %d\n", err);
++
++	return err;
+ }
+ 
+ #define dcs_write_seq(dev, cmd, seq...)				\
+@@ -59,7 +61,7 @@ static void ch13726a_dcs_write_buf(struct udevice *dev, const void *data,
+ })
+ 
+ 
+-static void ch13726a_init_sequence(struct udevice *dev)
++static int ch13726a_init_sequence(struct udevice *dev)
+ {
+ 	dcs_write_seq(dev, 0x2a, 0x00, 0x00, 0x04, 0x37);
+ 	dcs_write_seq(dev, 0x2b, 0x00, 0x00, 0x04, 0xd7);
+@@ -167,6 +169,8 @@ static void ch13726a_init_sequence(struct udevice *dev)
+ 				0x28, 0xf1, 0x91, 0x12, 0x2e, 0xf5, 0x91, 0x02);
+ 	dcs_write_seq(dev, 0xc3, 0x2b, 0xb0, 0x03, 0xf9, 0x52, 0x3e, 0x91, 0x3f, 
+ 				0x81, 0x7e, 0x30, 0xa7, 0xed, 0x0f, 0x00, 0x00);
++
++	return 0;
+ }
+ 
+ static void ch13726a_reset(struct udevice *dev)
+@@ -186,7 +190,11 @@ static int ch13726a_panel_enable_backlight(struct udevice *dev)
+ 	struct mipi_dsi_device *device = plat->device;
+ 	struct ch13726a_panel_priv *priv = dev_get_priv(dev);
+ 	int ret;
+-	
++
++	device->lanes = plat->lanes;
++	device->format = plat->format;
++	device->mode_flags = plat->mode_flags;
++
+ 	ret = mipi_dsi_attach(device);
+ 	if (ret < 0)
+ 		return ret;
+@@ -195,7 +203,17 @@ static int ch13726a_panel_enable_backlight(struct udevice *dev)
+ 	
+ 	device->mode_flags |= MIPI_DSI_MODE_LPM;
+ 
+-	ch13726a_init_sequence(dev);
++	u8 id[3];
++	ret = mipi_dsi_dcs_read(device, 0x04, id, 3);
++
++	if (ret < 0) {
++		printf("Panel not responding skipping init\n");
++		return 1;
++	}
++
++	ret = ch13726a_init_sequence(dev);
++	if (ret)
++		return -ENODEV;
+ 	
+ 	ret = mipi_dsi_dcs_exit_sleep_mode(device);
+ 	if (ret)
+@@ -251,9 +269,9 @@ static int ch13726a_panel_probe(struct udevice *dev)
+ 
+ 	plat->lanes = 4;
+ 	plat->format = MIPI_DSI_FMT_RGB888;
+-	plat->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS;
++	plat->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST;
+ 
+-	 ret = gpio_request_by_name(dev, "reset-gpio", 0, &priv->reset,
++	ret = gpio_request_by_name(dev, "reset-gpio", 0, &priv->reset,
+                     GPIOD_IS_OUT);
+  	if (ret) {
+ 		dev_err(dev, "Warning: cannot get reset GPIO\n");
+-- 
+2.25.1
+

@@ -1,0 +1,37 @@
+From a88610a2a3d6128d83681a72e84cd905c6f7eb0f Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Wed, 28 Jan 2026 16:31:27 +0530
+Subject: [PATCH] tps25751: return on usb role switch probe deferral
+
+Handle -EPROBE_DEFER from fwnode_usb_role_switch_get() by returning
+immediately instead of running the error path, allowing the driver
+to be reprobed once the role switch provider is ready. Otherwise
+it will keep rebooting the board as the usb interface gets reset.
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/drivers/usb/typec/tps25751.c b/drivers/usb/typec/tps25751.c
+index 1aa3cf036784..ecbc72d4b643 100644
+--- a/drivers/usb/typec/tps25751.c
++++ b/drivers/usb/typec/tps25751.c
+@@ -921,7 +921,7 @@ static int tps25750_probe(struct i2c_client *client)
+ 	tps->role_sw = fwnode_usb_role_switch_get(fwnode);
+ 	if (IS_ERR(tps->role_sw)) {
+ 		ret = PTR_ERR(tps->role_sw);
+-		goto err_fwnode_put;
++		return ret;
+ 	}
+ 
+ 	ret = fwnode_property_read_string(fwnode, "data-role", &data_role);
+@@ -995,8 +995,6 @@ static int tps25750_probe(struct i2c_client *client)
+ 	typec_unregister_port(tps->port);
+ err_role_put:
+ 	usb_role_switch_put(tps->role_sw);
+-err_fwnode_put:
+-	fwnode_handle_put(fwnode);
+ err_remove_patch:
+ 	tps25750_exec_normal_cmd(tps, TPS_4CC_GAID);
+ 
+-- 
+2.25.1
+

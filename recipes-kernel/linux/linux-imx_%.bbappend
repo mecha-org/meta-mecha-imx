@@ -30,9 +30,25 @@ SRC_URI:append = " file://0001-Added-ft3519-touchscreen-driver.patch \
 		   file://0026-feat-added-support-for-fuel-gauge.patch \
 		   file://0027-feat-support-for-usb0-mux-switch.patch \
 		   file://0028-feat-support-for-hdmi-audio.patch \
+		   file://0029-feat-add-support-for-Quectel-EM05-LTE-module.patch \
+		   file://0030-dwc3-Add-support-for-imx8mp-dwc-mainline-driver.patch \
+		   file://0031-fix-codec-added-logic-for-hp-jack-detection.patch \
+		   file://0032-cleanup-remove-unrequired-DTS-nodes.patch \
+		   file://0033-support-for-updated-usb-architecture.patch \
+		   file://0034-fix-display-avoid-overwriting-init-sequence.patch \
+		   file://0035-fix-codec-add-irq-gpio-for-jack-detection.patch \
+		   file://0036-feat-imx219-camera-support-on-ISP.patch \
+		   file://0037-feat-enable-USB-hub-using-GPIOs.patch \
+		   file://0038-feat-support-for-touch-to-wake.patch \
+		   file://0039-feat-support-for-wifi-dev-wake-and-kill-switch.patch \
+		   file://0040-feat-support-for-SoC-wake-using-LTE.patch \
+		   file://0041-tps25751-return-on-usb-role-switch-probe-deferral.patch \
+		   file://0042-feat-support-USB-data-on-USB-PWR-interface.patch \
+		   file://0043-fix-display-modify-porch-for-60Hz-refresh-rate.patch \
 		   file://config.cfg \
 		   file://display-conf.cfg \
 		   file://nxp-imx95.cfg \
+		   file://lte-module.cfg \
 		   file://tps25751.bin \
 		   file://tps25751-v1.bin \
 		"
@@ -45,4 +61,5 @@ do_configure:prepend() {
 
 DELTA_KERNEL_DEFCONFIG:prepend = " config.cfg \
 				display-conf.cfg \
+				lte-module.cfg \
 				"
