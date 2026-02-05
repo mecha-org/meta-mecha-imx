@@ -1,0 +1,26 @@
+From e90f13b738ff506aeba61ad9332d4efb9b525af6 Mon Sep 17 00:00:00 2001
+From: Pratham Malaviya <prathamm@mechasystems.com>
+Date: Thu, 5 Feb 2026 18:45:57 +0530
+Subject: [PATCH] fix: display:modify porch for 60Hz refresh rate
+
+Adds support for 60Hz refresh rate display instead of
+30Hz
+
+Signed-off-by: Pratham Malaviya <prathamm@mechasystems.com>
+
+diff --git a/drivers/gpu/drm/panel/panel-ddic-ch13726a.c b/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
+index 6fde61cedf37..c24a1557f8c0 100644
+--- a/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
++++ b/drivers/gpu/drm/panel/panel-ddic-ch13726a.c
+@@ -169,7 +169,7 @@ static const struct drm_display_mode rpmini_display_mode = {
+ //};
+ 
+ static const struct drm_display_mode rp5_display_mode = {
+-	.clock = (1080 + 80 + 80 + 80) * (1240 + 90 + 90) * 30 / 1000,
++	.clock = (1080 + 80 + 80 + 80) * (1240 + 90 + 90 + 90) * 60 / 1000,
+ 	.hdisplay = 1080,
+ 	.hsync_start = 1080 + 80,            // front porch
+ 	.hsync_end = 1080 + 80 + 80,         // front + sync
+-- 
+2.25.1
+
